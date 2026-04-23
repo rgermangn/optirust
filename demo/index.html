@@ -67,18 +67,25 @@
 <div class="header">
     <h1>Optirust Benchmark</h1>
     <p>Compare o peso das imagens antes e depois da otimização pelo CI/CD.</p>
-    <p><small>Se você acabou de fazer o fork, estas são as imagens <b>originais</b>. Faça um commit para disparar o Optirust!</small></p>
+    <p><small>Se os valores forem iguais, faça um commit para disparar o <code>optirust</code> no GitHub Actions!</small></p>
 </div>
 
 <div class="grid" id="gallery"></div>
 
 <script>
-    const gallery = document.getElementById('gallery');
-    const totalImages = 20;
+    const originalAssets = {
+        "00.png": 2471.28, "01.png": 2496.07, "02.png": 1069.50, "03.png": 517.30,
+        "04.png": 2767.60, "05.png": 1160.96, "06.png": 911.54,  "07.png": 1041.48,
+        "08.png": 871.55,  "09.png": 1315.48, "10.png": 400.23,  "11.png": 2197.83,
+        "12.png": 423.23,  "13.png": 570.84,  "14.png": 1775.06, "15.png": 367.48,
+        "16.png": 797.13,  "17.png": 775.60,  "18.png": 776.87,  "19.png": 1547.87
+    };
 
-    for (let i = 0; i < totalImages; i++) {
-        const name = i.toString().padStart(2, '0') + '.png';
+    const gallery = document.getElementById('gallery');
+
+    Object.keys(originalAssets).forEach((name, index) => {
         const path = `assets/${name}`;
+        const originalSize = originalAssets[name];
 
         const card = document.createElement('div');
         card.className = 'card';
@@ -88,47 +95,40 @@
             </div>
             <div class="stats">
                 <span class="filename">${name}</span>
-                <div class="size-compare" id="compare-${i}">
+                <div class="size-compare" id="compare-${index}">
                     <span class="new-size">Calculando...</span>
                 </div>
             </div>
         `;
         gallery.appendChild(card);
 
-        updateSize(path, i, name);
-    }
+        updateSize(path, index, originalSize);
+    });
 
-    async function updateSize(path, index, name) {
+    async function updateSize(path, index, originalSize) {
         try {
-            const response = await fetch(path);
+            const response = await fetch(path, { cache: "no-store" });
             const blob = await response.blob();
             const currentSizeKB = (blob.size / 1024).toFixed(2);
             
-            // Lógica de Comparação
-            const storageKey = `optirust-orig-${name}`;
-            let originalSize = localStorage.getItem(storageKey);
-
-            if (!originalSize) {
-                // Primeira vez: salva o tamanho atual como o "original"
-                localStorage.setItem(storageKey, currentSizeKB);
-                originalSize = currentSizeKB;
-            }
-
             const diff = (originalSize - currentSizeKB).toFixed(2);
-            const percent = originalSize > 0 ? ((diff / originalSize) * 100).toFixed(1) : 0;
+            const percent = ((diff / originalSize) * 100).toFixed(1);
             const container = document.getElementById(`compare-${index}`);
 
-            if (diff > 0.5) { // Só mostra comparação se a economia for relevante (> 0.5KB)
+            if (diff > 1.0) { 
                 container.innerHTML = `
-                    <span class="old-size">Original: ${originalSize} KB</span>
+                    <span class="old-size">Original: ${originalSize.toFixed(2)} KB</span>
                     <span class="new-size">Atual: ${currentSizeKB} KB</span>
                     <span class="saving">↓ ${percent}% de redução</span>
                 `;
             } else {
-                container.innerHTML = `<span class="new-size">${currentSizeKB} KB</span>`;
+                container.innerHTML = `
+                    <span class="new-size">${currentSizeKB} KB</span>
+                    <span class="filename" style="font-size:0.7rem">Aguardando otimização...</span>
+                `;
             }
         } catch (e) {
-            document.getElementById(`compare-${index}`).innerText = "Erro ao carregar";
+            document.getElementById(`compare-${index}`).innerText = "Erro no asset";
         }
     }
 </script>
