@@ -140,7 +140,7 @@ Você pode usar o OptiRust para otimizar imagens antes do deploy:
     betoxvt/optirust:latest run /assets
 ```
 ## 🧪 Quick Lab: Teste o Optirust em 30 segundos
-Você pode testar o poder de compressão do Optirust diretamente no seu navegador, usando o GitHub Actions como laboratório.
+Você pode testar o poder de compressão do Optirust diretamente no seu navegador, usando o GitHub Actions como laboratório. O resultado será uma página como esta: https://rgermangn.github.io/optirust/
 ### 1. Preparação
 1. Faça um ***Fork*** deste repositório.
 2. No seu fork, vá na aba Actions e clique no botão verde para habilitar os workflows (*"I understand my workflows, go ahead and enable them"*).
