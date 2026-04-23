@@ -190,8 +190,8 @@ graph TD
     classDef pages fill:#81c784,stroke:#1b5e20,stroke-width:2px,color:#000;
 
     subgraph Ambiente_Usuario [Ambiente do Usuario]
-        U1["Faça o Fork do Repositório"]:::user --> U2["Habilite o GitHub Pages"]:::user
-        U2 --> U3["Habilite o GitHub Actions"]:::user
+        U1["Faça o Fork do Repositório"]:::user --> U2["Habilite o GitHub Actions"]:::user
+        U2 --> U3["Habilite o GitHub Pages"]:::user
         U3 --> U4["Realize um Commit na pasta /demo"]:::user
         U6["Atualize a Página e Compare os Tamanhos"]:::user
     end
