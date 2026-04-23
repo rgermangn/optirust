@@ -143,18 +143,17 @@ Você pode usar o OptiRust para otimizar imagens antes do deploy:
 Você pode testar o poder de compressão do Optirust diretamente no seu navegador, usando o GitHub Actions como laboratório.
 ### 1. Preparação
 1. Faça um ***Fork*** deste repositório.
-2. No seu *fork*, vá em **Settings > Pages**.
-3. Em **Build and deployment > Source**, altere para **GitHub Actions**.
+2. No seu fork, vá na aba Actions e clique no botão verde para habilitar os workflows (*"I understand my workflows, go ahead and enable them"*).
+3. No seu *fork*, vá em **Settings > Pages**. Em **Build and deployment > Source**, altere para **GitHub Actions**.
 ### 2. O Cenário Inicial
 1. Aguarde o primeiro deploy (veja na aba Actions).
 2. Acesse a URL gerada (ex: https://seu-usuario.github.io/optirust/).
-3. Você verá uma galeria com 20 imagens. O script da página salvará o tamanho atual dessas imagens no seu navegador como o "Tamanho Original".
+3. Você verá uma galeria com 20 imagens marcadas como "Aguardando otimização...". Note que os tamanhos exibidos são os originais (baseados no sistema de arquivos).
 ### 3. Disparando a Otimização
-Agora, vamos ver o Optirust em ação:
+Agora, vamos ver o Optirust em ação no pipeline:
 1. No seu repositório, vá até o arquivo `demo/iniciar_demo.txt`.
-2. Clique no ícone de lápis para editar.
-3. Altere qualquer detalhe inofensivo (ex: adicione qualquer palavra).
-4. Clique em ***Commit changes...*** para salvar na main.
+2. Clique no ícone de lápis para editar e altere qualquer detalhe inofensivo (ex: adicione qualquer palavra).
+3. Clique em ***Commit changes...*** para salvar na main.
 ### 4. O Resultado
 1. Vá na aba Actions e acompanhe o workflow "Optirust Demo Lab". Você verá o Docker esmagando as imagens em tempo real.
 2. Quando terminar, volte à sua página do GitHub Pages e dê F5.
@@ -178,9 +177,6 @@ Este repositório utiliza um pipeline de CI/CD que:
 - **Otimização *On-the-fly*:** O GitHub Actions usa a imagem Docker `betoxvt/optirust` para otimizar os assets apenas durante o build.
 - **Deploy Transparente:** Apenas as versões leves são enviadas para o servidor de hospedagem.
 
-> [!TIP]
-> Quer testar com suas próprias fotos? Basta subir arquivos .png para a pasta demo/assets e ver o resultado no próximo deploy!
-
 **Diagrama do fluxo operacional:**
 ```mermaid
 graph TD
@@ -195,13 +191,14 @@ graph TD
 
     subgraph Ambiente_Usuario [Ambiente do Usuario]
         U1["Faça o Fork do Repositório"]:::user --> U2["Habilite o GitHub Pages"]:::user
-        U2 --> U3["Realize um Commit na pasta /demo"]:::user
+        U2 --> U3["Habilite o GitHub Actions"]:::user
+        U3 --> U4["Realize um Commit na pasta /demo"]:::user
         U6["Atualize a Página e Compare os Tamanhos"]:::user
     end
 
     subgraph GitHub_Infra [Infraestrutura do GitHub]
         G1["Repositório Forkado (main)"]:::git -->|Gatilho: Push em /demo| A1
-        U3 -->|Push| G1
+        U4 -->|Push| G1
         
         subgraph GActions [GitHub Actions Runner]
             A1["Inicie o Workflow (demo.yml)"]:::actions --> A2["Execute o optirust (Docker)"]:::actions
