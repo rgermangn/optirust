@@ -1,4 +1,4 @@
-name: Optirust Demo Lab
+name: ThinFlux Demo Lab
 
 on:
   push:
@@ -17,8 +17,8 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v6
 
-      - name: Run Optirust (Optimization Step)
-        run: docker run --rm -v ${{ github.workspace }}/demo/assets:/data betoxvt/optirust:latest run /data --summary
+      - name: Run ThinFlux (Optimization Step)
+        run: docker run --rm -v ${{ github.workspace }}/demo/assets:/data betoxvt/thinflux:latest run /data --summary
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v5
