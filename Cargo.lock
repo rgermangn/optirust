@@ -512,23 +512,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
-name = "optirust"
-version = "0.1.2"
-dependencies = [
- "chrono",
- "clap",
- "colored",
- "indicatif",
- "oxipng",
- "rayon",
- "serde",
- "serde_json",
- "tempfile",
- "toml",
- "walkdir",
-]
-
-[[package]]
 name = "oxipng"
 version = "10.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -778,6 +761,23 @@ checksum = "60b8cb979cb11c32ce1603f8137b22262a9d131aaa5c37b5678025f22b8becd0"
 dependencies = [
  "rustix",
  "windows-sys 0.60.2",
+]
+
+[[package]]
+name = "thinflux"
+version = "0.1.2"
+dependencies = [
+ "chrono",
+ "clap",
+ "colored",
+ "indicatif",
+ "oxipng",
+ "rayon",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "toml",
+ "walkdir",
 ]
 
 [[package]]

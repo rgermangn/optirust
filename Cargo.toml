@@ -1,10 +1,10 @@
 [package]
-name = "optirust"
+name = "thinflux"
 version = "0.1.2"
 edition = "2024"
 authors = ["Roberto German Guedes Neto <rgermangn@gmail.com>"]
 license = "MIT"
-description = "CLI de alta performance para otimização de imagens PNG em ambientes DevOps"
+description = "CLI de alta performance para otimização de assets em ambientes DevOps"
 
 [dependencies]
 # CLI e Argumentos

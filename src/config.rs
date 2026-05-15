@@ -18,7 +18,7 @@ impl Default for OptiConfig {
 }
 
 pub fn load_config() -> OptiConfig {
-    let config_path = Path::new("optirust.toml");
+    let config_path = Path::new("thinflux.toml");
 
     if config_path.exists() {
         let content = fs::read_to_string(config_path).unwrap_or_default();
@@ -29,10 +29,10 @@ pub fn load_config() -> OptiConfig {
 }
 
 pub fn create_default_config() -> Result<(), String> {
-    let config_path = Path::new("optirust.toml");
+    let config_path = Path::new("thinflux.toml");
 
     if config_path.exists() {
-        return Err("O arquivo optirust.toml já existe neste diretório.".to_string());
+        return Err("O arquivo thinflux.toml já existe neste diretório.".to_string());
     }
 
     let default_config = OptiConfig::default();
@@ -41,7 +41,7 @@ pub fn create_default_config() -> Result<(), String> {
         .map_err(|e| format!("Erro ao gerar TOML: {}", e))?;
 
     fs::write(config_path, toml_content)
-        .map_err(|e| format!("Erro ao criar o arquivo optirust.toml: {}", e))
+        .map_err(|e| format!("Erro ao criar o arquivo thinflux.toml: {}", e))
 }
 
 #[cfg(test)]
@@ -66,7 +66,7 @@ mod tests {
 
     #[test]
     fn test_create_default_config() {
-        let test_file = "optirust.toml";
+        let test_file = "thinflux.toml";
         // Limpeza inicial
         let _ = fs::remove_file(test_file);
 

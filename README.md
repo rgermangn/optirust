@@ -1,23 +1,23 @@
-# 🦀 OptiRust: PNG Multi-threaded Optimizer
+# 🦀 ThinFlux: PNG Multi-threaded Optimizer
 
 ![Version](https://img.shields.io/badge/version-0.1.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Docker Size](https://img.shields.io/badge/docker%20image-2.53MB-blueviolet)
 ![Rust](https://img.shields.io/badge/rust-2024-orange?logo=rust)
 
-O **OptiRust** é uma ferramenta de linha de comando (CLI) desenvolvida em **Rust** focada na otimização em massa de imagens PNG. O projeto foi construído aplicando conceitos avançados de sistemas, como processamento paralelo, serialização rigorosa e desenvolvimento guiado por testes (TDD).
+O **ThinFlux** é uma ferramenta de linha de comando (CLI) desenvolvida em **Rust** focada na otimização em massa de imagens PNG. O projeto foi construído aplicando conceitos avançados de sistemas, como processamento paralelo, serialização rigorosa e desenvolvimento guiado por testes (TDD).
 
 > [!WARNING]
 > Os arquivos otimizados sobreescrevem os originais!
 
 ## 🚀 Diferenciais Técnicos
-- **Processamento Paralelo (Rayon):** Diferente de scripts sequenciais, o OptiRust utiliza um pool de threads para processar múltiplas imagens simultaneamente, escalando a performance de acordo com os núcleos da CPU.
+- **Processamento Paralelo (Rayon):** Diferente de scripts sequenciais, o ThinFlux utiliza um pool de threads para processar múltiplas imagens simultaneamente, escalando a performance de acordo com os núcleos da CPU.
 
 - **Arquitetura Robusta:** Separação clara entre o motor de compressão (`optimizer`), o rastreador de arquivos (`scanner`) e o gerador de métricas (`report`).
 
 - **Segurança de Memória:** Aproveita o sistema de _ownership_ do Rust para garantir que a manipulação de arquivos e buffers de memória seja livre de _data races_.
 
-- **Configuração Flexível:** Suporte a arquivos `optirust.toml` para definição de níveis de compressão e persistência de preferências.
+- **Configuração Flexível:** Suporte a arquivos `thinflux.toml` para definição de níveis de compressão e persistência de preferências.
 
 ## 🛠️ Tecnologias Utilizadas
 - **Engine:** `oxipng` (Motor de compressão de alto desempenho).
@@ -49,8 +49,8 @@ O **OptiRust** é uma ferramenta de linha de comando (CLI) desenvolvida em **Rus
 ├── Cargo.toml                  # Configuração do Cargo
 ├── Cargo.lock                  # Lockfile do Cargo
 ├── Dockerfile                  # Arquivo Docker
-├── optirust_report.json        # Relatório real
-├── optirust.toml               # Configuração padrão
+├── thinflux_report.json        # Relatório real
+├── thinflux.toml               # Configuração padrão
 ├── test_input.png              # Imagem para testes unitários
 └── README.md                   # Documentação
 ```
@@ -75,17 +75,17 @@ cargo build --release
 Inicializar Configuração:
 
 ```Bash
-./target/release/optirust init
+./target/release/thinflux init
 ```
 
 **Executar Otimização com Relatório Visual**
 
 ```Bash
-./target/release/optirust run ./assets --summary
+./target/release/thinflux run ./assets --summary
 ```
 
 ### 📊 Exemplo de Relatório (JSON)
-Ao final de cada execução, o sistema gera um `optirust_report.json` detalhado para auditoria:
+Ao final de cada execução, o sistema gera um `thinflux_report.json` detalhado para auditoria:
 
 ```JSON
 {
@@ -112,13 +112,13 @@ Ao final de cada execução, o sistema gera um `optirust_report.json` detalhado 
 ```
 
 ## 🐳 Uso via Docker (DevOps Ready)
-O OptiRust está disponível como uma imagem Docker ultra-leve (baseada em scratch), ideal para ser integrada em pipelines de CI/CD para otimização automática de assets.
+O ThinFlux está disponível como uma imagem Docker ultra-leve (baseada em scratch), ideal para ser integrada em pipelines de CI/CD para otimização automática de assets.
 
 ### 1. Rodando a imagem do Docker Hub
 
 ```Bash
 # Otimizando uma pasta local usando o container
-docker run --rm -t -v $(pwd)/assets:/data betoxvt/optirust:latest run /data --summary
+docker run --rm -t -v $(pwd)/assets:/data betoxvt/thinflux:latest run /data --summary
 ```
 > [!TIP]
 > Use a flag `-t` do `docker run` para ver o relatório colorido!
@@ -127,35 +127,35 @@ docker run --rm -t -v $(pwd)/assets:/data betoxvt/optirust:latest run /data --su
 Utilizamos um processo de Multi-stage build para garantir que a imagem final contenha apenas o binário estático:
 
 ```Bash
-docker build -t optirust .
+docker build -t thinflux .
 ```
 
 ### 3. Integração em Pipeline (Exemplo GitHub Actions)
-Você pode usar o OptiRust para otimizar imagens antes do deploy:
+Você pode usar o ThinFlux para otimizar imagens antes do deploy:
 
 ```YAML
 - name: Optimize PNGs
   run: |
     docker run --rm -v ${{ github.workspace }}/assets:/assets \
-    betoxvt/optirust:latest run /assets
+    betoxvt/thinflux:latest run /assets
 ```
-## 🧪 Quick Lab: Teste o Optirust em 30 segundos
-Você pode testar o poder de compressão do Optirust diretamente no seu navegador, usando o GitHub Actions como laboratório. O resultado será uma página como esta: https://rgermangn.github.io/optirust/
+## 🧪 Quick Lab: Teste o ThinFlux em 30 segundos
+Você pode testar o poder de compressão do ThinFlux diretamente no seu navegador, usando o GitHub Actions como laboratório. O resultado será uma página como esta: https://rgermangn.github.io/thinflux/
 ### 1. Preparação
 1. Faça um ***Fork*** deste repositório.
 2. No seu fork, vá na aba Actions e clique no botão verde para habilitar os workflows (*"I understand my workflows, go ahead and enable them"*).
 3. No seu *fork*, vá em **Settings > Pages**. Em **Build and deployment > Source**, altere para **GitHub Actions**.
 ### 2. O Cenário Inicial
 1. Aguarde o primeiro deploy (veja na aba Actions).
-2. Acesse a URL gerada (ex: https://seu-usuario.github.io/optirust/).
+2. Acesse a URL gerada (ex: https://seu-usuario.github.io/thinflux/).
 3. Você verá uma galeria com 20 imagens marcadas como "Aguardando otimização...". Note que os tamanhos exibidos são os originais (baseados no sistema de arquivos).
 ### 3. Disparando a Otimização
-Agora, vamos ver o Optirust em ação no pipeline:
+Agora, vamos ver o ThinFlux em ação no pipeline:
 1. No seu repositório, vá até o arquivo `demo/iniciar_demo.txt`.
 2. Clique no ícone de lápis para editar e altere qualquer detalhe inofensivo (ex: adicione qualquer palavra).
 3. Clique em ***Commit changes...*** para salvar na main.
 ### 4. O Resultado
-1. Vá na aba Actions e acompanhe o workflow "Optirust Demo Lab". Você verá o Docker esmagando as imagens em tempo real.
+1. Vá na aba Actions e acompanhe o workflow "ThinFlux Demo Lab". Você verá o Docker esmagando as imagens em tempo real.
 2. Quando terminar, volte à sua página do GitHub Pages e dê F5.
 3. Mágica: A tabela agora mostrará o tamanho "Original" (riscado) e o novo tamanho "Otimizado", calculando a porcentagem exata de economia de espaço.
 
@@ -174,7 +174,7 @@ Os resultados devem ser próximos aos expressos nesta tabela:
 ### 🛠️ Como funciona este teste?
 Este repositório utiliza um pipeline de CI/CD que:
 - **Não altera seu código:** As imagens originais na pasta `demo/assets` continuam pesadas no Git.
-- **Otimização *On-the-fly*:** O GitHub Actions usa a imagem Docker `betoxvt/optirust` para otimizar os assets apenas durante o build.
+- **Otimização *On-the-fly*:** O GitHub Actions usa a imagem Docker `betoxvt/thinflux` para otimizar os assets apenas durante o build.
 - **Deploy Transparente:** Apenas as versões leves são enviadas para o servidor de hospedagem.
 
 **Diagrama do fluxo operacional:**
@@ -201,13 +201,13 @@ graph TD
         U4 -->|Push| G1
         
         subgraph GActions [GitHub Actions Runner]
-            A1["Inicie o Workflow (demo.yml)"]:::actions --> A2["Execute o optirust (Docker)"]:::actions
+            A1["Inicie o Workflow (demo.yml)"]:::actions --> A2["Execute o thinflux (Docker)"]:::actions
             A2 --> A3["Upload do Artefato (/demo)"]:::actions
         end
     end
 
     subgraph Recursos_Externos [Recursos Externos]
-        D1(("DockerHub: optirust")):::docker -.->|Pull da Imagem| A2
+        D1(("DockerHub: thinflux")):::docker -.->|Pull da Imagem| A2
     end
 
     subgraph Publicacao [Publicação]
@@ -224,16 +224,16 @@ graph TD
 - [x] **Core Engine em Rust:** Processamento de alta performance utilizando a Edition 2024.
 - [x] **Paralelismo com Rayon:** Otimização multi-thread para processamento em massa de diretórios.
 - [x] **Interface CLI Intuitiva:** Comandos estruturados via `Clap` com suporte a ajuda detalhada (`--help`).
-- [x] **Relatórios Dinâmicos:** Geração automática de `optirust_report.json` e resumo visual colorido no terminal.
+- [x] **Relatórios Dinâmicos:** Geração automática de `thinflux_report.json` e resumo visual colorido no terminal.
 - [x] **Containerização Estática:** Imagem Docker ultra-leve baseada em `scratch` (<3MB), garantindo portabilidade total.
 - [x] **Cálculo de Eficiência:** Métricas precisas de ganho de espaço por arquivo e total da operação.
 
 ## 🗺️ Roadmap de Desenvolvimento
 
-Abaixo estão as funcionalidades planejadas para as próximas iterações do OptiRust:
+Abaixo estão as funcionalidades planejadas para as próximas iterações do ThinFlux:
 
 - [ ] **Modo Silent (`--silent`):** Redução de logs para integração limpa em CI/CD.
-- [ ] **Configuração Dinâmica:** Suporte a `--config <path>` e argumentos de linha de comando para sobrescrever o `optirust.toml`.
+- [ ] **Configuração Dinâmica:** Suporte a `--config <path>` e argumentos de linha de comando para sobrescrever o `thinflux.toml`.
 - [ ] **Suporte Multi-Formato:** Expansão do algoritmo de compressão para:
     - [ ] 🖼️ **Imagens:** WebP, JPEG e SVG.
     - [ ] 📄 **Documentos:** Otimização de camadas de PDF.

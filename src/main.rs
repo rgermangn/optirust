@@ -10,13 +10,13 @@ use rayon::prelude::*;
 use std::path::PathBuf;
 use std::time::Instant;
 
-/// 🦀 OptiRust - Otimizador de PNG de alta performance escrito em Rust.
+/// 🦀 ThinFlux - Otimizador de PNG de alta performance escrito em Rust.
 /// Desenvolvido para processamento em massa com segurança e velocidade.#[derive(Parser)]
 #[derive(Parser)]
 #[command(
     author = "Roberto German Guedes Neto",
     version = "0.1.2",
-    name = "OptiRust",
+    name = "ThinFlux",
     about,
     long_about = None
 )]
@@ -37,7 +37,7 @@ enum Commands {
         #[arg(short, long, default_value_t = false)]
         summary: bool,
     },
-    /// ⚙️ Inicializa o arquivo de configuração padrão (optirust.toml)
+    /// ⚙️ Inicializa o arquivo de configuração padrão (thinflux.toml)
     Init,
 }
 
@@ -102,7 +102,7 @@ fn main() {
                     }
                     let duration = start_time.elapsed();
                     println!("✅ Concluído em {:?}!", duration);
-                    println!("📝 Relatório detalhado gerado em 'optirust_report.json'");
+                    println!("📝 Relatório detalhado gerado em 'thinflux_report.json'");
                 }
                 Err(e) => eprintln!("Erro ao gerar relatório: {}", e),
             }
@@ -111,7 +111,7 @@ fn main() {
         Commands::Init => {
             println!("{}", "🛠️ Gerando arquivo de configuração...{}".blue());
             match config::create_default_config() {
-                Ok(_) => println!("✅ Arquivo 'optirust.toml criado com sucesso!"),
+                Ok(_) => println!("✅ Arquivo 'thinflux.toml criado com sucesso!"),
                 Err(e) => eprintln!("Erro: {}", e),
             }
         }

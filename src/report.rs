@@ -87,7 +87,7 @@ pub fn generate_json_report(
     let json = serde_json::to_string_pretty(&report)
         .map_err(|e| format!("Erro ao serializar JSON: {}", e))?;
 
-    let mut file = File::create("optirust_report.json")
+    let mut file = File::create("thinflux_report.json")
         .map_err(|e| format!("Erro ao criar arquivo: {}", e))?;
 
     let _ = file
