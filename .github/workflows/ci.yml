@@ -23,7 +23,7 @@ jobs:
         uses: actions-rust-lang/audit@v1
 
       - name: ⚙️ Check Formatting
-        run: actions-rust-lang/rustfmt@v1
+        uses: actions-rust-lang/rustfmt@v1
 
       - name: 🪛 Lint with Clippy
         run: cargo clippy -- -D warnings
