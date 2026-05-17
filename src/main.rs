@@ -40,6 +40,10 @@ enum Commands {
         /// Silencia os logs e barras de progresso visuais para CI/CD
         #[arg(long, default_value_t = false)]
         silent: bool,
+
+        /// Caminho para um arquivo de configuração personalizado TOML
+        #[arg(short, long, value_name = "ARQUIVO")]
+        config: Option<PathBuf>,
     },
     /// ⚙️ Inicializa o arquivo de configuração padrão (thinflux.toml)
     Init,
@@ -47,14 +51,31 @@ enum Commands {
 
 fn main() {
     let cli = Cli::parse();
-    let settings = config::load_config();
+    // let settings = config::load_config();
 
     match cli.command {
         Commands::Run {
             path,
             summary,
             silent,
+            config,
         } => {
+            if config.as_ref().is_some_and(|cfg_path| !cfg_path.exists()) {
+                let cfg_path = config.as_ref().unwrap();
+                eprintln!(
+                    "{}",
+                    format!(
+                        "Erro: O arquivo de configuração especificado '{:?}' não foi encontrado.",
+                        cfg_path
+                    )
+                    .red()
+                );
+                std::process::exit(1);
+            }
+
+            // Carrega a configuração dinamicamente com base na presença da flag
+            let settings = config::load_config(config.as_deref());
+
             if silent {
                 colored::control::set_override(false);
             } else {
@@ -93,7 +114,7 @@ fn main() {
             let results: Vec<_> = files
                 .par_iter()
                 .map(|file| {
-                    let res = optimizer::optimize_png(file);
+                    let res = optimizer::optimize_png(file, settings.level);
                     if let Some(ref progress_bar) = pb {
                         progress_bar.inc(1);
                     }

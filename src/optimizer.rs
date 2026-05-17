@@ -2,11 +2,9 @@ use oxipng::{InFile, Options, OutFile, optimize};
 use std::path::PathBuf;
 
 /// Otimiza uma imagem PNG individual
-pub fn optimize_png(path: &PathBuf) -> Result<(usize, usize), String> {
-    // Configurações padrão do oxipng (Equivalente ao nível 2)
-    let options = Options::default();
+pub fn optimize_png(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
+    let options = Options::from_preset(level.clamp(0, 6));
 
-    // Define a entrada e saída (neste caso, sobrescreve o arquivo original)
     let input = InFile::Path(path.to_path_buf());
     let output = OutFile::Path {
         path: Some(path.to_path_buf()),
@@ -36,7 +34,7 @@ mod tests {
         fs::copy(&input_path, &test_path).unwrap();
 
         // 3. Executar a compressão e campturear os tamanhos retornados
-        let (initial_size, final_size) = optimize_png(&test_path).expect("Erro ao otimizar");
+        let (initial_size, final_size) = optimize_png(&test_path, 2).expect("Erro ao otimizar");
 
         // 4. Validar: O tamanho final deve ser menor ou igual ao inicial
         println!(
@@ -55,7 +53,7 @@ mod tests {
         let ghost_path = PathBuf::from("arquivo_fantasma.png");
 
         // 2. Executar a otimização e verificar o erro
-        let result = optimize_png(&ghost_path);
+        let result = optimize_png(&ghost_path, 2);
 
         // 3. Verificar o erro
         assert!(result.is_err());

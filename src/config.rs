@@ -17,8 +17,11 @@ impl Default for OptiConfig {
     }
 }
 
-pub fn load_config() -> OptiConfig {
-    let config_path = Path::new("thinflux.toml");
+pub fn load_config(custom_path: Option<&Path>) -> OptiConfig {
+    let config_path = match custom_path {
+        Some(path) => path,
+        None => Path::new("thinflux.toml"),
+    };
 
     if config_path.exists() {
         let content = fs::read_to_string(config_path).unwrap_or_default();
@@ -51,7 +54,7 @@ mod tests {
     #[test]
     // Sem arquivo de configuração, o padrão é 2
     fn test_default_config_loading() {
-        let config = load_config();
+        let config = load_config(None);
         assert_eq!(config.level, 2);
     }
 
@@ -80,5 +83,22 @@ mod tests {
 
         // Limpeza final
         fs::remove_file(test_file).unwrap();
+    }
+
+    #[test]
+    fn test_load_custom_config_path() {
+        let custom_file = "custom_config.toml";
+        // 1. Criamos um arquivo temporário com nível de compressão diferente (ex: 7)
+        fs::write(custom_file, "level = 7\noverwrite = false").unwrap();
+
+        // 2. FASE RED: Isso não vai compilar porque load_config() ainda não aceita argumentos!
+        // Queremos passar Some(Path::new(custom_file)) para carregar o arquivo customizado
+        let config = load_config(Some(Path::new(custom_file)));
+
+        assert_eq!(config.level, 7);
+        assert!(!config.overwrite);
+
+        // Limpeza
+        fs::remove_file(custom_file).unwrap();
     }
 }
