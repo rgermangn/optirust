@@ -11,6 +11,6 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 
 FROM scratch
 LABEL org.opencontainers.image.title="ThinFlux"
-LABEL org.opencontainers.image.description="High-performance PNG optimizer CLI"
+LABEL org.opencontainers.image.description="High-performance assets optimizer CLI"
 COPY --from=builder /usr/local/bin/thinflux /thinflux
 ENTRYPOINT [ "/thinflux" ]

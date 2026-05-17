@@ -1,4 +1,4 @@
-# 🌊 ThinFlux: PNG Multi-threaded Optimizer
+# 🌊 ThinFlux: Assets Multi-threaded Optimizer
 
 ![Version](https://img.shields.io/badge/version-0.1.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -51,7 +51,9 @@ Como parte do nosso processo de liberação de versão (Release), o arquivo `Car
 │   ├── assets/                 # Imagens para demonstração
 │   ├── index.html              # Página da demonstração
 │   └── iniciar_demo.txt        # Altere este arquivo para iniciar o Actions
-├── .github/workflows/demo.yml  # Pipeline CI/CD de demonstração
+├── .github/workflows/
+│   ├── ci.yml                  # Pipeline CI/CD do ThinFlux
+│   └── demo.yml                # Pipeline CI/CD do website de demonstração
 ├── docs/                       # Documentação do projeto
 ├── examples/                   # Scripts criados durante o desenvolvimento 
 ├── Cargo.toml                  # Configuração do Cargo
