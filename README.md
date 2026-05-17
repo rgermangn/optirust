@@ -4,6 +4,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Docker Size](https://img.shields.io/badge/docker%20image-2.53MB-blueviolet)
 ![Rust](https://img.shields.io/badge/rust-2024-orange?logo=rust)
+![Vulnerabilities](https://img.shields.io/rustsec/advisories/rgermangn/thinflux)
 
 > [!IMPORTANT]
 > **Antigo Optirust:** Este projeto foi renomeado de **Optirust** para **ThinFlux**. 
@@ -12,7 +13,10 @@
 O **ThinFlux** é uma ferramenta de linha de comando (CLI) desenvolvida em **Rust** focada na otimização em massa de imagens PNG. O projeto foi construído aplicando conceitos avançados de sistemas, como processamento paralelo, serialização rigorosa e desenvolvimento guiado por testes (TDD).
 
 > [!WARNING]
-> Os arquivos otimizados sobreescrevem os originais!
+> Os arquivos otimizados sobreescrevem arquivos com mesmo nome no destino. Dependendo da sua configuração de Deploy.
+
+### 🕵️ Auditoria de Dependências Estática
+Como parte do nosso processo de liberação de versão (Release), o arquivo `Cargo.lock` é auditado utilizando a ferramenta `cargo-audit` contra o banco de dados oficial da **RustSec Advisory Database**. Isso garante que o binário embutido na imagem Docker final está livre de vulnerabilidades conhecidas na cadeia de suprimentos.
 
 ## 🚀 Diferenciais Técnicos
 - **Processamento Paralelo (Rayon):** Diferente de scripts sequenciais, o ThinFlux utiliza um pool de threads para processar múltiplas imagens simultaneamente, escalando a performance de acordo com os núcleos da CPU.
