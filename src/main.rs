@@ -89,10 +89,10 @@ fn main() {
             let start_time = Instant::now();
 
             // 1. Scanner
-            let files = scanner::find_png_files(path);
+            let files = scanner::find_supported_files(path);
             if files.is_empty() {
                 if !silent {
-                    println!("{}", "⚠️ Nenhum arquivo PNG encontrado".yellow());
+                    println!("{}", "⚠️ Nenhum arquivo suportado foi encontrado".yellow());
                 }
                 return;
             }
@@ -114,7 +114,7 @@ fn main() {
             let results: Vec<_> = files
                 .par_iter()
                 .map(|file| {
-                    let res = optimizer::optimize_png(file, settings.level);
+                    let res = optimizer::optimize_image(file, settings.level);
                     if let Some(ref progress_bar) = pb {
                         progress_bar.inc(1);
                     }

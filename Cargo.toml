@@ -12,6 +12,8 @@ clap = { version = "4.5.60", features = ["derive"] }
 
 # Processamento de Imagem (Motor Core)
 oxipng = "10.1.0"
+image = "0.25.10"
+webp = "0.3.1"
 
 # Paralelismo e Performance
 rayon = "1.11.0"

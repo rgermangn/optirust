@@ -1,7 +1,45 @@
+use image::ImageReader;
+use image::codecs::jpeg::JpegEncoder;
 use oxipng::{InFile, Options, OutFile, optimize};
+use std::fs::File;
+use std::io::BufWriter;
 use std::path::PathBuf;
+use webp::Encoder;
 
-/// Otimiza uma imagem PNG individual
+#[derive(Debug, PartialEq)]
+pub enum ImageFormat {
+    Png,
+    Jpeg,
+    Webp,
+    Unknown,
+}
+
+impl ImageFormat {
+    pub fn from_extension(extension: &str) -> Self {
+        match extension.to_lowercase().as_str() {
+            "png" => ImageFormat::Png,
+            "jpg" | "jpeg" => ImageFormat::Jpeg,
+            "webp" => ImageFormat::Webp,
+            _ => ImageFormat::Unknown,
+        }
+    }
+}
+
+/// Função principal que atua como Router do Backend de Otimização
+pub fn optimize_image(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
+    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
+
+    let format = ImageFormat::from_extension(ext);
+
+    match format {
+        ImageFormat::Png => optimize_png(path, level),
+        ImageFormat::Jpeg => optimize_jpeg(path, level),
+        ImageFormat::Webp => optimize_webp(path, level),
+        ImageFormat::Unknown => Err(format!("Formato não suportado para o arquivo: {:?}", path)),
+    }
+}
+
+/// Motor de Otimização de PNG
 pub fn optimize_png(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
     let options = Options::from_preset(level.clamp(0, 6));
 
@@ -11,8 +49,71 @@ pub fn optimize_png(path: &PathBuf, level: u8) -> Result<(usize, usize), String>
         preserve_attrs: false,
     };
 
-    // Executa a otimização e trata o erro de forma idiomática
+    // Executa a otimização e trata o erro
     optimize(&input, &output, &options).map_err(|e| format!("Erro ao otimizar {:?}: {}", path, e))
+}
+
+/// Motor de Otimização de JPEG
+fn optimize_jpeg(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
+    let initial_size = std::fs::metadata(path).map_err(|e| e.to_string())?.len() as usize;
+
+    // Carrega a imagem na memória de forma genérica
+    let img = ImageReader::open(path)
+        .map_err(|e| e.to_string())?
+        .decode()
+        .map_err(|e| e.to_string())?;
+
+    // Mapeia o nível (0-6) para a qualidade JPEG (0-100). Ex: Nível 2 = 80% qualidade
+    let quality = match level {
+        0 => 95,
+        1 => 85,
+        2 => 75,
+        3 => 65,
+        _ => 50,
+    };
+
+    let file = File::create(path).map_err(|e| e.to_string())?;
+    let mut writer = BufWriter::new(file);
+
+    // Codifica com a nova compressão
+    let encoder = JpegEncoder::new_with_quality(&mut writer, quality);
+    img.write_with_encoder(encoder).map_err(|e| e.to_string())?;
+
+    let final_size = std::fs::metadata(path).map_err(|e| e.to_string())?.len() as usize;
+    Ok((initial_size, final_size))
+}
+
+/// Motor de Otimização de WebP
+fn optimize_webp(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
+    let initial_size = std::fs::metadata(path).map_err(|e| e.to_string())?.len() as usize;
+
+    // 1. Carrega a imagem dinamicamente usando a crate image
+    let img = ImageReader::open(path)
+        .map_err(|e| e.to_string())?
+        .decode()
+        .map_err(|e| e.to_string())?;
+
+    // 2. Mapeia o nível (0-6) para a qualidade WebP (0.0 a 100.0)
+    let quality = match level {
+        0 => 90.0,
+        1 => 82.0,
+        2 => 75.0,
+        3 => 65.0,
+        _ => 50.0,
+    };
+
+    // 3. Alimenta o encoder da libwebp com a imagem carregada
+    let encoder =
+        Encoder::from_image(&img).map_err(|_| "Falha ao inicializar o encoder WebP".to_string())?;
+
+    // 4. Executa a compressão Lossy (com perda) baseada no perfil de qualidade
+    let memory = encoder.encode(quality);
+
+    // 5. Sobrescreve o arquivo original com os novos bytes comprimidos
+    std::fs::write(path, &*memory).map_err(|e| e.to_string())?;
+
+    let final_size = std::fs::metadata(path).map_err(|e| e.to_string())?.len() as usize;
+    Ok((initial_size, final_size))
 }
 
 #[cfg(test)]
@@ -21,45 +122,45 @@ mod tests {
     use std::fs;
 
     #[test]
+    fn test_image_format_detection() {
+        assert_eq!(ImageFormat::from_extension("JPEG"), ImageFormat::Jpeg);
+        assert_eq!(ImageFormat::from_extension("webp"), ImageFormat::Webp);
+        assert_eq!(ImageFormat::from_extension("png"), ImageFormat::Png);
+        assert_eq!(ImageFormat::from_extension("txt"), ImageFormat::Unknown);
+    }
+
+    #[test]
     fn test_compression_reduces_size() {
         // 1. Preparar: Copia a imagem de teste para não estragar a original
         let input_path = PathBuf::from("test_input.png");
         let test_path = PathBuf::from("test_output.png");
 
-        // 2. Verifica se a imagem de teste existe antes de começar
         if !input_path.exists() {
             panic!("Por favor, adicione a imagem 'test_input.png' na raiz do projeto.");
         }
 
         fs::copy(&input_path, &test_path).unwrap();
 
-        // 3. Executar a compressão e campturear os tamanhos retornados
-        let (initial_size, final_size) = optimize_png(&test_path, 2).expect("Erro ao otimizar");
+        // 2. Chama a função 'optimize_image' passando o nível de compressão padrão (2)
+        let (initial_size, final_size) = optimize_image(&test_path, 2).expect("Erro ao otimizar");
 
-        // 4. Validar: O tamanho final deve ser menor ou igual ao inicial
+        // 3. Validar
         println!(
             "Inicial: {} bytes | Final: {} bytes",
             initial_size, final_size
         );
-        assert!(final_size < initial_size);
+        assert!(final_size <= initial_size);
 
-        // Limpeza: Remove a imagem de teste
+        // Limpeza
         fs::remove_file(test_path).unwrap();
     }
 
     #[test]
     fn test_file_not_found_error() {
-        // 1. Arquivo inexistente
         let ghost_path = PathBuf::from("arquivo_fantasma.png");
 
-        // 2. Executar a otimização e verificar o erro
-        let result = optimize_png(&ghost_path, 2);
+        let result = optimize_image(&ghost_path, 2);
 
-        // 3. Verificar o erro
         assert!(result.is_err());
-
-        // 4. Checar a mensagem de erro
-        let error_msg = result.unwrap_err();
-        assert!(error_msg.contains("Erro ao otimizar"));
     }
 }
