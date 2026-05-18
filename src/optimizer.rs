@@ -121,7 +121,7 @@ fn optimize_webp(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
 }
 
 /// Motor de Otimização de PDF
-fn optimize_pdf(path: &PathBuf, _level: u8) -> Result<(usize, usize), String> {
+fn optimize_pdf(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
     let initial_size = std::fs::metadata(path).map_err(|e| e.to_string())?.len() as usize;
 
     // 1. Carrega o documento PDF na memória
@@ -132,11 +132,28 @@ fn optimize_pdf(path: &PathBuf, _level: u8) -> Result<(usize, usize), String> {
     for (_, object) in doc.objects.iter_mut() {
         if let Object::Stream(stream) = object
             && is_image_stream(stream)
-            && let Ok(_data) = stream.decompressed_content()
+            && let Ok(data) = stream.decompressed_content()
         {
-            // 💡 Nota para o futuro: Lógica de otimização dos bytes vai aqui
-            // Exemplo: stream.set_plain_content(bytes_otimizados);
-            images_optimized += 1;
+            // Tenta carregar a imagem a partir dos bytes da memória
+            if let Ok(img) = image::load_from_memory(&data) {
+                let mut optimized_bytes = Vec::new();
+
+                // Mapeia o nível (0-6) para qualidade JPEG (0-100)
+                let quality = match level {
+                    0 => 90,
+                    1 => 80,
+                    2 => 75,
+                    3 => 65,
+                    _ => 50,
+                };
+
+                let encoder = JpegEncoder::new_with_quality(&mut optimized_bytes, quality);
+
+                if img.write_with_encoder(encoder).is_ok() && optimized_bytes.len() < data.len() {
+                    stream.set_plain_content(optimized_bytes);
+                    images_optimized += 1;
+                }
+            }
         }
     }
 
