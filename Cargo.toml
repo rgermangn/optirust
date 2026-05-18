@@ -15,13 +15,16 @@ oxipng = "10.1.0"
 image = "0.25.10"
 webp = "0.3.1"
 
+# Extração do PDF
+lopdf = "0.40.0"
+
 # Paralelismo e Performance
 rayon = "1.11.0"
 
 # Sistema de Arquivos e Configuração
 walkdir = "2.5.0"
 serde = { version = "1.0.228", features = ["derive"] }
-toml = "1.0.6+spec-1.1.0"
+toml = "1.0.6"
 
 # Interface Visual (Barra de progresso e Cores)
 indicatif = "0.18.4"

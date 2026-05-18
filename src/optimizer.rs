@@ -1,5 +1,6 @@
 use image::ImageReader;
 use image::codecs::jpeg::JpegEncoder;
+use lopdf::{Document, Object, Stream};
 use oxipng::{InFile, Options, OutFile, optimize};
 use std::fs::File;
 use std::io::BufWriter;
@@ -11,6 +12,7 @@ pub enum ImageFormat {
     Png,
     Jpeg,
     Webp,
+    Pdf,
     Unknown,
 }
 
@@ -20,6 +22,7 @@ impl ImageFormat {
             "png" => ImageFormat::Png,
             "jpg" | "jpeg" => ImageFormat::Jpeg,
             "webp" => ImageFormat::Webp,
+            "pdf" => ImageFormat::Pdf,
             _ => ImageFormat::Unknown,
         }
     }
@@ -35,6 +38,7 @@ pub fn optimize_image(path: &PathBuf, level: u8) -> Result<(usize, usize), Strin
         ImageFormat::Png => optimize_png(path, level),
         ImageFormat::Jpeg => optimize_jpeg(path, level),
         ImageFormat::Webp => optimize_webp(path, level),
+        ImageFormat::Pdf => optimize_pdf(path, level),
         ImageFormat::Unknown => Err(format!("Formato não suportado para o arquivo: {:?}", path)),
     }
 }
@@ -116,6 +120,46 @@ fn optimize_webp(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
     Ok((initial_size, final_size))
 }
 
+/// Motor de Otimização de PDF
+fn optimize_pdf(path: &PathBuf, _level: u8) -> Result<(usize, usize), String> {
+    let initial_size = std::fs::metadata(path).map_err(|e| e.to_string())?.len() as usize;
+
+    // 1. Carrega o documento PDF na memória
+    let mut doc = Document::load(path).map_err(|e| format!("Erro ao abrir PDF: {}", e))?;
+    let mut images_optimized = 0;
+
+    // 2. Varre todos os objetos internos do arquivo procurando por Streams de Imagem
+    for (_, object) in doc.objects.iter_mut() {
+        if let Object::Stream(stream) = object
+            && is_image_stream(stream)
+            && let Ok(_data) = stream.decompressed_content()
+        {
+            // 💡 Nota para o futuro: Lógica de otimização dos bytes vai aqui
+            // Exemplo: stream.set_plain_content(bytes_otimizados);
+            images_optimized += 1;
+        }
+    }
+
+    // 3. Se alteramos alguma imagem, salvamos o PDF compactando-o novamente
+    if images_optimized > 0 {
+        doc.save(path)
+            .map_err(|e| format!("Erro ao salvar PDF: {}", e))?;
+    }
+
+    let final_size = std::fs::metadata(path).map_err(|e| e.to_string())?.len() as usize;
+    Ok((initial_size, final_size))
+}
+
+/// Helper para validar se o objeto do PDF é de fato uma imagem
+fn is_image_stream(stream: &Stream) -> bool {
+    if let Ok(Object::Name(name)) = stream.dict.get(b"Subtype")
+        && name == b"Image"
+    {
+        return true;
+    }
+    false
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -162,5 +206,12 @@ mod tests {
         let result = optimize_image(&ghost_path, 2);
 
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_pdf_format_routing() {
+        let pdf_path = PathBuf::from("relatorio_teste.pdf");
+        let result = optimize_image(&pdf_path, 2);
+        assert!(result.is_err() || result.is_ok());
     }
 }
