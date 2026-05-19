@@ -90,9 +90,9 @@ pub fn generate_json_report(
     let mut file = File::create("thinflux_report.json")
         .map_err(|e| format!("Erro ao criar arquivo: {}", e))?;
 
-    let _ = file
-        .write_all(json.as_bytes())
-        .map_err(|e| format!("Erro ao gravar arquivo: {}", e));
+    // CORREÇÃO: Propaga o erro corretamente usando o operador `?` em vez de mascarar com `let _`
+    file.write_all(json.as_bytes())
+        .map_err(|e| format!("Erro ao gravar arquivo: {}", e))?;
 
     Ok(report)
 }
@@ -101,7 +101,8 @@ pub fn print_terminal_summary(report: &FinalReport) {
     let separator = "----------------------------------------------------------------------".bold();
 
     println!("\n{}", separator);
-    println!("{}", "✨ OPTIRUST - RELATÓRIO DE OTIMIZAÇÃO ✨".bold());
+    // AJUSTE: Atualizado o nome do projeto de OPTIRUST para THINFLUX
+    println!("{}", "✨ THINFLUX - RELATÓRIO DE OTIMIZAÇÃO ✨".bold());
     println!("{}", separator);
 
     println!(
@@ -124,7 +125,7 @@ pub fn print_terminal_summary(report: &FinalReport) {
         println!(
             "{:<10} {:<25} {:>8.1} KB {:>8.1} KB {:>10}",
             status,
-            file.name.chars().take(22).collect::<String>(), // Trunca nomes longos
+            file.name.chars().take(22).collect::<String>(),
             file.original_kb,
             file.optimized_kb,
             format!("[ {} ]", file.ratio).green()
