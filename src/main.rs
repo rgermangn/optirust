@@ -15,7 +15,7 @@ use std::time::Instant;
 #[derive(Parser)]
 #[command(
     author = "Roberto German Guedes Neto",
-    version = "0.1.3",
+    version = "0.2.0",
     name = "ThinFlux",
     about,
     long_about = None
@@ -44,6 +44,14 @@ enum Commands {
         /// Caminho para um arquivo de configuração personalizado TOML
         #[arg(short, long, value_name = "ARQUIVO")]
         config: Option<PathBuf>,
+
+        /// Nível dinâmico de compressão (0 a 6) [sobrescreve o TOML]
+        #[arg(short, long, value_name = "0-6", value_parser = clap::value_parser!(u8).range(0..=6))]
+        level: Option<u8>,
+
+        /// Extensões permitidas para otimização separadas por vírgula (ex: png,webp,pdf)
+        #[arg(short, long, value_name = "LISTA", value_delimiter = ',')]
+        types: Option<Vec<String>>,
     },
     /// ⚙️ Inicializa o arquivo de configuração padrão (thinflux.toml)
     Init,
@@ -51,7 +59,6 @@ enum Commands {
 
 fn main() {
     let cli = Cli::parse();
-    // let settings = config::load_config();
 
     match cli.command {
         Commands::Run {
@@ -59,6 +66,8 @@ fn main() {
             summary,
             silent,
             config,
+            level,
+            types,
         } => {
             if config.as_ref().is_some_and(|cfg_path| !cfg_path.exists()) {
                 let cfg_path = config.as_ref().unwrap();
@@ -73,12 +82,20 @@ fn main() {
                 std::process::exit(1);
             }
 
-            // Carrega a configuração dinamicamente com base na presença da flag
-            let settings = config::load_config(config.as_deref());
-
+            // 1. Configura controle de cores
             if silent {
                 colored::control::set_override(false);
-            } else {
+            }
+
+            // Carrega a configuração dinamicamente com base na presença da flag
+            let mut settings = config::load_config(config.as_deref());
+
+            if let Some(cli_level) = level {
+                settings.level = cli_level;
+            }
+
+            // 2. Logs iniciais
+            if !silent {
                 println!(
                     "🛠️ Otimizando em nível: {}",
                     settings.level.to_string().green()
@@ -89,7 +106,8 @@ fn main() {
             let start_time = Instant::now();
 
             // 1. Scanner
-            let files = scanner::find_supported_files(path);
+            let files = scanner::find_supported_files(path.clone(), types);
+
             if files.is_empty() {
                 if !silent {
                     println!("{}", "⚠️ Nenhum arquivo suportado foi encontrado".yellow());
@@ -110,12 +128,15 @@ fn main() {
                 Some(ProgressBar::new(files.len() as u64))
             };
 
+            let pb_ref = pb.as_ref();
+
             // 2. Optimizer + Rayon
             let results: Vec<_> = files
                 .par_iter()
                 .map(|file| {
                     let res = optimizer::optimize_image(file, settings.level);
-                    if let Some(ref progress_bar) = pb {
+                    // Passando a referência de forma segura entre as threads do pool
+                    if let Some(progress_bar) = pb_ref {
                         progress_bar.inc(1);
                     }
                     res
