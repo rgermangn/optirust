@@ -15,12 +15,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v6
 
-      # Instala dependências leves para geração de mídia e PDF estruturado
+      # Instala a biblioteca do Python
       - name: Install Generation Tools
         run: |
-          sudo apt-get update
-          sudo apt-get install -p python3-pip -y
-          pip3 install reportlab --break-system-packages
+          python3 -m pip install reportlab --break-system-packages
 
       # Cria a estrutura de pastas e gera arquivos reais de teste de cada tipo
       - name: Generate Multi-Format Test Assets (Outside and Inside PDF)
@@ -29,12 +27,11 @@ jobs:
           TARGET_DIR="${{ github.workspace }}/demo/assets"
 
           # 1. Gerando imagens avulsas fora do PDF (PNG, JPEG, WebP)
-          # Criamos cabeçalhos binários mínimos válidos para cada formato passar pelo mapeamento de assinaturas
           echo -e -n "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB\`\x82" > "$TARGET_DIR/imagem_avulsa.png"
           echo -e -n "\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x01\x00\x60\x00\x60\x00\x00\xFF\xDB\x00\x43\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\x09\x09\x08\x0A\x0C\x14\x0D\x0C\x0B\x0B\x0C\x19\x12\x13\x0F\x14\x1D\x1A\x1F\x1E\x1D\x1A\x1C\x1C\x20\x24\x2E\x27\x20\x22\x2C\x23\x1C\x1C\x28\x37\x29\x2C\x30\x31\x34\x34\x34\x1F\x27\x39\x3D\x38\x32\x3C\x2E\x33\x34\x32\xFF\xC0\x00\x0B\x08\x00\x01\x00\x01\x01\x01\x11\x00\xFF\xC4\x00\x14\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xDA\x00\x08\x01\x01\x00\x00\x3F\x00\xBC\x00\xFF\xD9" > "$TARGET_DIR/imagem_avulsa.jpg"
           echo -e -n "RIFF\x14\x00\x00\x00WEBPVP8L\x08\x00\x00\x00\x2f\x00\x00\x00\x00\x00\x00\x00" > "$TARGET_DIR/imagem_avulsa.webp"
 
-          # 2. Script Python para gerar um PDF corporativo embutindo PNG e JPEG em suas streams internas (/XObject /Image)
+          # 2. Script Python para gerar o PDF corporativo embutindo PNG e JPEG
           python3 -c "
           from reportlab.pdfgen import canvas
           from reportlab.lib.pagesizes import letter
@@ -45,11 +42,9 @@ jobs:
 
           c.drawString(100, 750, 'ThinFlux Lab - Relatorio de Validacao de Streams de PDF')
 
-          # Injeta a stream de uma imagem PNG internamente no PDF
           c.drawString(100, 700, 'Stream Interna 1: Ativo PNG Embutido')
           c.drawImage(os.path.join('$TARGET_DIR', 'imagem_avulsa.png'), 100, 500, width=100, height=100)
 
-          # Injeta a stream de uma imagem JPEG internamente no PDF
           c.drawString(100, 400, 'Stream Interna 2: Ativo JPEG Embutido')
           c.drawImage(os.path.join('$TARGET_DIR', 'imagem_avulsa.jpg'), 100, 200, width=100, height=100)
 
