@@ -17,8 +17,24 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v6
 
+      # Mapeia o diretório atual do GitHub Workspace para coletar o JSON gerado
       - name: Run ThinFlux (Optimization Step)
-        run: docker run --rm -v ${{ github.workspace }}/demo/assets:/data betoxvt/thinflux:latest run /data --summary
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/demo/assets:/data \
+            -v ${{ github.workspace }}:/app \
+            -w /app \
+            betoxvt/thinflux:latest run /data --summary
+
+      # Copia o relatório de telemetria para a pasta do laboratório de demonstração
+      - name: Collect Telemetry Report
+        run: |
+          if [ -f "thinflux_report.json" ]; then
+            cp thinflux_report.json ./demo/
+            echo "Telemetria coletada com sucesso."
+          else
+            echo "Erro: thinflux_report.json não foi encontrado." && exit 1
+          fi
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v5
