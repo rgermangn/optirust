@@ -26,15 +26,13 @@ jobs:
             -w /app \
             betoxvt/thinflux:latest run /data --summary
 
-      # Copia o relatório de telemetria para a pasta do laboratório de demonstração
-      - name: Collect Telemetry Report
-        run: |
-          if [ -f "thinflux_report.json" ]; then
-            cp thinflux_report.json ./demo/
-            echo "Telemetria coletada com sucesso."
-          else
-            echo "Erro: thinflux_report.json não foi encontrado." && exit 1
-          fi
+      # Busca arquivo gerado e disponibiliza para download na aba Summary do Workflow.
+      - name: Upload Telemetry Report Only
+        uses: actions/upload-artifact@v4
+        with:
+          name: thinflux-telemetry-report
+          path: thinflux_report.json
+          if-no-files-found: error
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v5
