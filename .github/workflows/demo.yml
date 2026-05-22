@@ -15,46 +15,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v6
 
-      # Instala a biblioteca do Python
-      - name: Install Generation Tools
-        run: |
-          python3 -m pip install reportlab --break-system-packages
-
-      # Cria a estrutura de pastas e gera arquivos reais de teste de cada tipo
-      - name: Generate Multi-Format Test Assets (Outside and Inside PDF)
-        run: |
-          mkdir -p ${{ github.workspace }}/demo/assets
-          TARGET_DIR="${{ github.workspace }}/demo/assets"
-
-          # 1. Gerando imagens avulsas fora do PDF (PNG, JPEG, WebP)
-          echo -e -n "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB\`\x82" > "$TARGET_DIR/imagem_avulsa.png"
-          echo -e -n "\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x01\x00\x60\x00\x60\x00\x00\xFF\xDB\x00\x43\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\x09\x09\x08\x0A\x0C\x14\x0D\x0C\x0B\x0B\x0C\x19\x12\x13\x0F\x14\x1D\x1A\x1F\x1E\x1D\x1A\x1C\x1C\x20\x24\x2E\x27\x20\x22\x2C\x23\x1C\x1C\x28\x37\x29\x2C\x30\x31\x34\x34\x34\x1F\x27\x39\x3D\x38\x32\x3C\x2E\x33\x34\x32\xFF\xC0\x00\x0B\x08\x00\x01\x00\x01\x01\x01\x11\x00\xFF\xC4\x00\x14\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xFF\xDA\x00\x08\x01\x01\x00\x00\x3F\x00\xBC\x00\xFF\xD9" > "$TARGET_DIR/imagem_avulsa.jpg"
-          echo -e -n "RIFF\x14\x00\x00\x00WEBPVP8L\x08\x00\x00\x00\x2f\x00\x00\x00\x00\x00\x00\x00" > "$TARGET_DIR/imagem_avulsa.webp"
-
-          # 2. Script Python para gerar o PDF corporativo embutindo PNG e JPEG
-          python3 -c "
-          from reportlab.pdfgen import canvas
-          from reportlab.lib.pagesizes import letter
-          import os
-
-          pdf_path = os.path.join('$TARGET_DIR', 'documento_complexo.pdf')
-          c = canvas.Canvas(pdf_path, pagesize=letter)
-
-          c.drawString(100, 750, 'ThinFlux Lab - Relatorio de Validacao de Streams de PDF')
-
-          c.drawString(100, 700, 'Stream Interna 1: Ativo PNG Embutido')
-          c.drawImage(os.path.join('$TARGET_DIR', 'imagem_avulsa.png'), 100, 500, width=100, height=100)
-
-          c.drawString(100, 400, 'Stream Interna 2: Ativo JPEG Embutido')
-          c.drawImage(os.path.join('$TARGET_DIR', 'imagem_avulsa.jpg'), 100, 200, width=100, height=100)
-
-          c.showPage()
-          c.save()
-          "
-          echo "Ativos de teste criados com sucesso: PNG, JPG, WEBP e PDF com streams internas."
-
-      # Executa o ThinFlux contra o diretório populado dinamicamente e mostra o relatório do ThinFlux
-      - name: Run ThinFlux Engine Against Sandbox
+      - name: Run ThinFlux (Optimization Step)
         run: |
           docker run --rm \
             -v ${{ github.workspace }}/demo/assets:/data \
@@ -62,34 +23,6 @@ jobs:
             -w /app \
             betoxvt/thinflux:latest run /data --summary
 
-      # Gera o sumário visual para o Lab detalhando o comportamento multiformato do motor
-      - name: Generate Dynamic Job Summary
-        if: always()
-        run: |
-          if [ -f "thinflux_report.json" ]; then
-            echo "### 🚀 ThinFlux Multi-Format Lab Dashboard" >> $GITHUB_STEP_SUMMARY
-            echo "#### Telemetria capturada com sucesso a partir do motor Rust Edition 2024." >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "| Escopo do Ativo | Status do Processamento | Extensão Detectada |" >> $GITHUB_STEP_SUMMARY
-            echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
-            echo "| **Imagem Avulsa PNG** | 💎 Otimizada (Lossless Engine) | \`.png\` |" >> $GITHUB_STEP_SUMMARY
-            echo "| **Imagem Avulsa JPEG** | ⚡ Otimizada (Lossy Backend) | \`.jpg\` / \`.jpeg\` |" >> $GITHUB_STEP_SUMMARY
-            echo "| **Imagem Avulsa WebP** | 📈 Otimizada (Next-Gen Codec) | \`.webp\` |" >> $GITHUB_STEP_SUMMARY
-            echo "| **Documento Complexo** | 📑 Streams \`/XObject\` Recomprimidas | \`.pdf\` |" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "| Métrica de Infraestrutura | Detalhes do Runtime |" >> $GITHUB_STEP_SUMMARY
-            echo "| :--- | :--- |" >> $GITHUB_STEP_SUMMARY
-            echo "| **Isolamento de Segurança** | 🛡️ Imagem Scratch (Não-Root / Trivy Clean) |" >> $GITHUB_STEP_SUMMARY
-            echo "| **Orquestração Paralela** | 🚀 Threads Gerenciadas via Rayon Cargo |" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "##### O arquivo puro de dados \`thinflux_report.json\` foi gerado na raiz e está pronto para auditoria." >> $GITHUB_STEP_SUMMARY
-          else
-            echo "### ❌ ThinFlux Execution Failure" >> $GITHUB_STEP_SUMMARY
-            echo "O relatório \`thinflux_report.json\` não foi gerado pelo binário. Verifique os logs do container." >> $GITHUB_STEP_SUMMARY
-            exit 1
-          fi
-
-      # Disponibiliza o JSON gerado em runtime para download
       - name: Upload Telemetry Report Only
         uses: actions/upload-artifact@v4
         with:
