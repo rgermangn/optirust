@@ -133,17 +133,23 @@
         updateSize(path, index, originalSize);
     });
 
-    async function updateSize(path, index, originalSize) {
+async function updateSize(path, index, originalSize) {
+        // Encontra o container que já foi criado e inserido na tela
+        const container = document.getElementById(`compare-${index}`);
+        
         try {
             const response = await fetch(path, { cache: "no-store" });
+            
+            if (!response.ok) {
+                throw new Error("Arquivo não encontrado no servidor");
+            }
+            
             const blob = await response.blob();
             const currentSizeKB = (blob.size / 1024).toFixed(2);
             
             const diff = (originalSize - currentSizeKB).toFixed(2);
             const percent = ((diff / originalSize) * 100).toFixed(1);
-            const container = document.getElementById(`compare-${index}`);
 
-            // Considera sucesso qualquer redução acima de 0.1% para capturar arquivos pequenos
             if (diff > 0.05) { 
                 container.innerHTML = `
                     <span class="old-size">Original: ${originalSize.toFixed(2)} KB</span>
@@ -157,7 +163,8 @@
                 `;
             }
         } catch (e) {
-            document.getElementById(`compare-${index}`).innerHTML = `<span class="old-size" style="color:#e74c3c;">Asset ausente</span>`;
+            // Se o arquivo falhar, o card continua na tela, mas exibe o aviso vermelho isolado!
+            container.innerHTML = `<span class="old-size" style="color:#e74c3c; text-decoration:none;">⚠️ Asset ausente ou erro de deploy</span>`;
         }
     }
 </script>

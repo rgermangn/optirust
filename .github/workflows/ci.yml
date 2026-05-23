@@ -2,9 +2,26 @@ name: ThinFlux CI/CD Pipeline
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - "main"
+      - "dev"
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "src/**"
+      - ".github/workflows/**"
+      - "Dockerfile"
+
   pull_request:
-    branches: ["main"]
+    branches:
+      - "main"
+      - "dev"
+    paths:
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "src/**"
+      - ".github/workflows/**"
+      - "Dockerfile"
 
 jobs:
   audit-and-test:
