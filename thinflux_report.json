@@ -1,25 +1,25 @@
 {
-  "timestamp": "2026-05-19T11:43:45.081112952Z",
+  "timestamp": "2026-05-23T04:32:27.979248680Z",
   "status": "success",
   "summary": {
     "files_processed": 3,
     "total_original_size_kb": 1.3134765625,
-    "total_optimized_size_kb": 1.1923828125,
-    "space_saved_kb": 0.12109375,
-    "efficiency_gain_percent": 9.219330855018587
+    "total_optimized_size_kb": 1.0595703125,
+    "space_saved_kb": 0.25390625,
+    "efficiency_gain_percent": 19.33085501858736
   },
   "files": [
     {
       "name": "documento_pesado.pdf",
-      "path": "/tmp/.tmpsEaLci/documento_pesado.pdf",
+      "path": "/tmp/.tmpgFKSu6/documento_pesado.pdf",
       "original_kb": 1.083984375,
-      "optimized_kb": 1.083984375,
-      "saved_kb": 0.0,
-      "ratio": "0.0%"
+      "optimized_kb": 0.951171875,
+      "saved_kb": 0.1328125,
+      "ratio": "12.3%"
     },
     {
       "name": "teste.webp",
-      "path": "/tmp/.tmpsEaLci/teste.webp",
+      "path": "/tmp/.tmpgFKSu6/teste.webp",
       "original_kb": 0.07421875,
       "optimized_kb": 0.04296875,
       "saved_kb": 0.03125,
@@ -27,7 +27,7 @@
     },
     {
       "name": "teste.png",
-      "path": "/tmp/.tmpsEaLci/teste.png",
+      "path": "/tmp/.tmpgFKSu6/teste.png",
       "original_kb": 0.1552734375,
       "optimized_kb": 0.0654296875,
       "saved_kb": 0.08984375,
