@@ -1,6 +1,7 @@
-use image::ImageReader;
+use image::ImageBuffer;
 use image::codecs::jpeg::JpegEncoder;
-use lopdf::{Document, Object, Stream};
+use image::{DynamicImage, ImageReader, Luma, Rgb};
+use lopdf::{Document, Object};
 use oxipng::{InFile, Options, OutFile, optimize};
 use std::fs::File;
 use std::io::BufWriter;
@@ -28,6 +29,19 @@ impl ImageFormat {
     }
 }
 
+/// Mapeia o nível universal (0-6) para qualidade JPEG (0-100)
+fn jpeg_quality_from_level(level: u8) -> u8 {
+    match level {
+        0 => 95,
+        1 => 85,
+        2 => 75,
+        3 => 65,
+        _ => 50,
+    }
+}
+
+// ─── Router ──────────────────────────────────────────────────────────────────
+
 /// Função principal que atua como Router do Backend de Otimização
 pub fn optimize_image(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
     let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("");
@@ -41,6 +55,8 @@ pub fn optimize_image(path: &PathBuf, level: u8) -> Result<(usize, usize), Strin
         ImageFormat::Unknown => Err(format!("Formato não suportado para o arquivo: {:?}", path)),
     }
 }
+
+// ─── Motores por formato ─────────────────────────────────────────────────────
 
 /// Motor de Otimização de PNG
 pub fn optimize_png(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
@@ -64,14 +80,7 @@ fn optimize_jpeg(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
         .decode()
         .map_err(|e| e.to_string())?;
 
-    // Mapeia nível (0-6) → qualidade JPEG (0-100)
-    let quality = match level {
-        0 => 95,
-        1 => 85,
-        2 => 75,
-        3 => 65,
-        _ => 50,
-    };
+    let quality = jpeg_quality_from_level(level);
 
     let file = File::create(path).map_err(|e| e.to_string())?;
     let mut writer = BufWriter::new(file);
@@ -92,7 +101,7 @@ fn optimize_webp(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
         .map_err(|e| e.to_string())?;
 
     // Mapeia nível (0-6) → qualidade WebP (0.0-100.0)
-    let quality = match level {
+    let quality: f32 = match level {
         0 => 90.0,
         1 => 82.0,
         2 => 75.0,
@@ -111,55 +120,70 @@ fn optimize_webp(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
 
 /// Motor de Otimização de PDF
 fn optimize_pdf(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
-    // 1. Coleta o tamanho original em disco
     let original_size = std::fs::metadata(path)
         .map(|m| m.len() as usize)
         .unwrap_or(0);
 
-    // 2. Carrega o documento PDF na memória usando lopdf
     let mut doc =
         Document::load(path).map_err(|e| format!("Erro ao carregar PDF {:?}: {}", path, e))?;
 
-    // 3. Remove metadados desnecessários (Produtor/Autor)
+    // Remove metadados desnecessários (Produtor/Autor)
     doc.trailer.remove(b"Info");
 
-    // 4. Varre todos os objetos em busca de streams
+    // Varre todos os objetos em busca de streams
     for (_object_id, object) in doc.objects.iter_mut() {
         if let Object::Stream(stream) = object {
-            // Recompressão de imagens antes da compressão estrutural
-            if is_image_stream(stream)
-                && let Err(e) = recompress_image_stream(stream, level)
-            {
-                eprintln!("Aviso: imagem ignorada ({e})");
+            // Recompressão de imagens embutidas
+            if is_image_stream(stream) {
+                if let Err(e) = recompress_image_stream(stream, level) {
+                    eprintln!("Aviso: imagem ignorada ({e})");
+                }
             }
-
-            // Compressão estrutural: aplica FlateDecode (Zlib) nas streams de texto/estruturais
+            // Compressão estrutural: FlateDecode nas streams de texto/estruturais
             let _ = stream.compress();
         }
     }
 
-    // 5. Limpeza interna: remove referências mortas e reordena objetos
+    // Limpeza interna: remove referências mortas e reordena objetos
     doc.prune_objects();
 
-    // 6. Grava em memória para validar ganho real antes de tocar o disco
+    // Grava em memória para validar ganho antes de tocar o disco
     let mut buffer = Vec::new();
     doc.save_to(&mut buffer)
         .map_err(|e| format!("Erro ao salvar PDF otimizado na memória: {}", e))?;
 
     let optimized_size = buffer.len();
 
-    // 7. Regra de Ouro do ThinFlux: só sobrescreve se houve ganho real
+    // Regra de Ouro do ThinFlux: só sobrescreve se houve ganho real
     if optimized_size < original_size {
-        std::fs::write(path, buffer)
-            .map_err(|e| format!("Erro ao gravar PDF otimizado em disco: {}", e))?;
+        // Grava em temporário NO MESMO diretório — garante rename atômico (mesmo filesystem)
+        let parent = path.parent().ok_or("Arquivo PDF sem diretório pai")?;
+        let tmp_path = parent.join(format!(
+            ".thinflux_tmp_{}.pdf",
+            path.file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("unnamed")
+        ));
+
+        std::fs::write(&tmp_path, &buffer)
+            .map_err(|e| format!("Erro ao gravar temporário {:?}: {}", tmp_path, e))?;
+
+        // Rename atômico: ou substitui por completo, ou não troca nada
+        std::fs::rename(&tmp_path, path).map_err(|e| {
+            let _ = std::fs::remove_file(&tmp_path); // limpa lixo se falhar
+            format!("Erro ao substituir PDF original {:?}: {}", path, e)
+        })?;
+
         Ok((original_size, optimized_size))
     } else {
         Ok((original_size, original_size))
     }
 }
 
+// ─── Auxiliares de imagem embutida em PDF ────────────────────────────────────
+
 /// Detecta se uma stream é uma imagem pelo dicionário /Subtype /Image
-fn is_image_stream(stream: &Stream) -> bool {
+fn is_image_stream(stream: &lopdf::Stream) -> bool {
     matches!(
         stream.dict.get(b"Subtype"),
         Ok(Object::Name(name)) if name == b"Image"
@@ -167,15 +191,20 @@ fn is_image_stream(stream: &Stream) -> bool {
 }
 
 /// Extrai, recomprime e reinjeta os bytes da imagem na stream do PDF.
-fn recompress_image_stream(stream: &mut Stream, level: u8) -> Result<(), String> {
-    // Descomprime para expor os bytes brutos (pixels sem cabeçalho)
+///
+/// Fluxo:
+///   1. Descomprime a stream para obter pixels brutos
+///   2. Lê dimensões e espaço de cor do dicionário PDF
+///   3. Reconstrói a imagem com a crate `image`
+///   4. Recodifica como JPEG com qualidade = f(level)
+///   5. Só substitui se o resultado for menor (Regra de Ouro)
+fn recompress_image_stream(stream: &mut lopdf::Stream, level: u8) -> Result<(), String> {
     stream
         .decompress()
         .map_err(|e| format!("Falha ao descomprimir stream de imagem: {e}"))?;
 
     let raw_bytes = stream.content.clone();
 
-    // Lê metadados de imagem do dicionário PDF
     let width = get_dict_int(&stream.dict, b"Width").ok_or("Stream sem /Width")?;
     let height = get_dict_int(&stream.dict, b"Height").ok_or("Stream sem /Height")?;
     let bits = get_dict_int(&stream.dict, b"BitsPerComponent").unwrap_or(8);
@@ -193,14 +222,13 @@ fn recompress_image_stream(stream: &mut Stream, level: u8) -> Result<(), String>
         })
         .unwrap_or_default();
 
-    // Número de canais por pixel
     let channels: usize = match color_space.as_slice() {
         b"DeviceRGB" => 3,
-        b"DeviceCMYK" => return Err("CMYK não suportado — ignorado".into()), // sem suporte nativo
-        _ => 1,                                                              // DeviceGray
+        b"DeviceCMYK" => return Err("CMYK não suportado — ignorado".into()),
+        _ => 1, // DeviceGray
     };
 
-    // Guarda contra streams com tamanho inconsistente no dicionário
+    // Guarda contra streams com metadados inconsistentes
     let expected = width * height * channels * (bits / 8);
     if raw_bytes.len() < expected {
         return Err(format!(
@@ -209,18 +237,10 @@ fn recompress_image_stream(stream: &mut Stream, level: u8) -> Result<(), String>
         ));
     }
 
-    // Recodifica para JPEG com qualidade baseada no nível
-    let jpeg_quality: u8 = match level {
-        0 => 95,
-        1 => 85,
-        2 => 75,
-        3 => 65,
-        _ => 50,
-    };
+    let quality = jpeg_quality_from_level(level);
+    let recompressed = encode_as_jpeg(&raw_bytes, width, height, channels, quality)?;
 
-    let recompressed = encode_as_jpeg(&raw_bytes, width, height, channels, jpeg_quality)?;
-
-    // Só substitui se realmente ficou menor
+    // Só substitui se realmente ficou menor (Regra de Ouro para imagens)
     if recompressed.len() < raw_bytes.len() {
         stream.content = recompressed;
         // Remove filtros antigos; stream.compress() vai aplicar FlateDecode depois
@@ -234,7 +254,7 @@ fn recompress_image_stream(stream: &mut Stream, level: u8) -> Result<(), String>
     Ok(())
 }
 
-/// Reconstrói pixels brutos numa imagem e recodifica como JPEG.
+/// Reconstrói pixels brutos numa DynamicImage e recodifica como JPEG.
 fn encode_as_jpeg(
     raw: &[u8],
     width: usize,
@@ -242,8 +262,6 @@ fn encode_as_jpeg(
     channels: usize,
     quality: u8,
 ) -> Result<Vec<u8>, String> {
-    use image::{DynamicImage, ImageBuffer, Luma, Rgb};
-
     let dynamic: DynamicImage = match channels {
         3 => {
             let buf =
@@ -260,31 +278,15 @@ fn encode_as_jpeg(
     };
 
     let mut output = Vec::new();
-    dynamic
-        .write_to(
-            &mut std::io::Cursor::new(&mut output),
-            image::ImageFormat::Jpeg,
-        )
-        .map_err(|e| format!("Falha ao codificar JPEG: {e}"))?;
+    let mut encoder = JpegEncoder::new_with_quality(&mut output, quality);
+    encoder
+        .encode_image(&dynamic)
+        .map_err(|e| format!("Falha no JpegEncoder: {e}"))?;
 
-    // A crate `image` não expõe qualidade direto via write_to;
-    let mut fine_output = Vec::new();
-    {
-        let mut encoder = JpegEncoder::new_with_quality(&mut fine_output, quality);
-        encoder
-            .encode_image(&dynamic)
-            .map_err(|e| format!("Falha no JpegEncoder: {e}"))?;
-    }
-
-    // Retorna o menor dos dois (write_to usa qualidade padrão, fine usa a solicitada)
-    Ok(if fine_output.len() < output.len() {
-        fine_output
-    } else {
-        output
-    })
+    Ok(output)
 }
 
-/// Helper: lê um inteiro do dicionário da stream
+/// Lê um inteiro do dicionário da stream
 fn get_dict_int(dict: &lopdf::Dictionary, key: &[u8]) -> Option<usize> {
     dict.get(key).ok().and_then(|o| {
         if let Object::Integer(n) = o {
@@ -294,6 +296,8 @@ fn get_dict_int(dict: &lopdf::Dictionary, key: &[u8]) -> Option<usize> {
         }
     })
 }
+
+// ─── Testes ──────────────────────────────────────────────────────────────────
 
 #[cfg(test)]
 mod tests {
@@ -337,7 +341,6 @@ mod tests {
     fn test_pdf_format_routing() {
         let pdf_path = PathBuf::from("relatorio_teste.pdf");
         let result = optimize_image(&pdf_path, 2);
-        // Aceita Ok (PDF existente) ou Err (arquivo não existe): apenas valida que roteia
         assert!(result.is_ok() || result.is_err());
     }
 }
