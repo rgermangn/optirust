@@ -47,6 +47,8 @@ pub fn create_default_config() -> Result<(), String> {
         .map_err(|e| format!("Erro ao criar o arquivo thinflux.toml: {}", e))
 }
 
+// ─── Testes ──────────────────────────────────────────────────────────────────
+
 #[cfg(test)]
 mod tests {
     use super::*;

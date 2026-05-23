@@ -25,6 +25,8 @@ pub fn find_supported_files(root: PathBuf, custom_types: Option<Vec<String>>) ->
         .collect()
 }
 
+// ─── Testes ──────────────────────────────────────────────────────────────────
+
 #[cfg(test)]
 mod tests {
     use super::*;
