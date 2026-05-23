@@ -134,21 +134,19 @@ fn optimize_pdf(path: &PathBuf, level: u8) -> Result<(usize, usize), String> {
     for (_object_id, object) in doc.objects.iter_mut() {
         if let Object::Stream(stream) = object {
             // Recompressão de imagens embutidas
-            if is_image_stream(stream) {
-                if let Err(e) = recompress_image_stream(stream, level) {
-                    // Só loga se for um erro inesperado, não limitações conhecidas
-                    let silenced = [
-                        "JPXDecode",
-                        "CMYK",
-                        "missing feature of lopdf",
-                        "Bytes insuficientes",
-                    ];
-                    if !silenced.iter().any(|s| e.contains(s)) {
-                        eprintln!("Aviso: imagem ignorada ({e})");
-                    }
+            if is_image_stream(stream)
+                && let Err(e) = recompress_image_stream(stream, level)
+            {
+                const SILENCED: &[&str] = &[
+                    "JPXDecode",
+                    "CMYK",
+                    "missing feature of lopdf",
+                    "Bytes insuficientes",
+                ];
+                if !SILENCED.iter().any(|s| e.contains(s)) {
+                    eprintln!("Aviso: imagem ignorada ({e})");
                 }
             }
-            // Compressão estrutural: FlateDecode nas streams de texto/estruturais
             let _ = stream.compress();
         }
     }
