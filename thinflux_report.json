@@ -1,93 +1,37 @@
 {
-  "timestamp": "2026-03-17T23:53:48.563503334Z",
+  "timestamp": "2026-05-23T13:33:08.751902126Z",
   "status": "success",
   "summary": {
-    "files_processed": 10,
-    "total_original_size_kb": 7716.76953125,
-    "total_optimized_size_kb": 6324.9775390625,
-    "space_saved_kb": 1391.7919921875,
-    "efficiency_gain_percent": 18.035940901840704
+    "files_processed": 3,
+    "total_original_size_kb": 1.3134765625,
+    "total_optimized_size_kb": 1.0595703125,
+    "space_saved_kb": 0.25390625,
+    "efficiency_gain_percent": 19.33085501858736
   },
   "files": [
     {
-      "name": "btc.png",
-      "path": "./assets_1/btc.png",
-      "original_kb": 1069.5029296875,
-      "optimized_kb": 847.1689453125,
-      "saved_kb": 222.333984375,
-      "ratio": "20.8%"
+      "name": "documento_pesado.pdf",
+      "path": "/tmp/.tmpkkw2WU/documento_pesado.pdf",
+      "original_kb": 1.083984375,
+      "optimized_kb": 0.951171875,
+      "saved_kb": 0.1328125,
+      "ratio": "12.3%"
     },
     {
-      "name": "coxinhas.png",
-      "path": "./assets_1/coxinhas.png",
-      "original_kb": 1041.4833984375,
-      "optimized_kb": 850.19140625,
-      "saved_kb": 191.2919921875,
-      "ratio": "18.4%"
+      "name": "teste.webp",
+      "path": "/tmp/.tmpkkw2WU/teste.webp",
+      "original_kb": 0.07421875,
+      "optimized_kb": 0.04296875,
+      "saved_kb": 0.03125,
+      "ratio": "42.1%"
     },
     {
-      "name": "caminhao.png",
-      "path": "./assets_1/caminhao.png",
-      "original_kb": 517.3017578125,
-      "optimized_kb": 458.0205078125,
-      "saved_kb": 59.28125,
-      "ratio": "11.5%"
-    },
-    {
-      "name": "cracha.png",
-      "path": "./assets_1/cracha.png",
-      "original_kb": 479.47265625,
-      "optimized_kb": 436.5751953125,
-      "saved_kb": 42.8974609375,
-      "ratio": "8.9%"
-    },
-    {
-      "name": "imagem_desafiadora_para_compressao.png",
-      "path": "./assets_1/imagem_desafiadora_para_compressao.png",
-      "original_kb": 2197.8330078125,
-      "optimized_kb": 1705.7109375,
-      "saved_kb": 492.1220703125,
-      "ratio": "22.4%"
-    },
-    {
-      "name": "empilhadeira.png",
-      "path": "./assets_1/empilhadeira.png",
-      "original_kb": 400.2265625,
-      "optimized_kb": 312.84765625,
-      "saved_kb": 87.37890625,
-      "ratio": "21.8%"
-    },
-    {
-      "name": "smartwatch.png",
-      "path": "./assets_1/smartwatch.png",
-      "original_kb": 775.6005859375,
-      "optimized_kb": 656.8291015625,
-      "saved_kb": 118.771484375,
-      "ratio": "15.3%"
-    },
-    {
-      "name": "motocicleta.png",
-      "path": "./assets_1/motocicleta.png",
-      "original_kb": 423.2294921875,
-      "optimized_kb": 354.7998046875,
-      "saved_kb": 68.4296875,
-      "ratio": "16.2%"
-    },
-    {
-      "name": "supercarro.png",
-      "path": "./assets_1/supercarro.png",
-      "original_kb": 487.2265625,
-      "optimized_kb": 440.9013671875,
-      "saved_kb": 46.3251953125,
-      "ratio": "9.5%"
-    },
-    {
-      "name": "roteador.png",
-      "path": "./assets_1/roteador.png",
-      "original_kb": 324.892578125,
-      "optimized_kb": 261.9326171875,
-      "saved_kb": 62.9599609375,
-      "ratio": "19.4%"
+      "name": "teste.png",
+      "path": "/tmp/.tmpkkw2WU/teste.png",
+      "original_kb": 0.1552734375,
+      "optimized_kb": 0.0654296875,
+      "saved_kb": 0.08984375,
+      "ratio": "57.9%"
     }
   ]
 }

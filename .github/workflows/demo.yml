@@ -7,24 +7,25 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
-  build-and-deploy:
+  build-and-optimize:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v6
 
       - name: Run ThinFlux (Optimization Step)
-        run: docker run --rm -v ${{ github.workspace }}/demo/assets:/data betoxvt/thinflux:latest run /data --summary
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/demo/assets:/data \
+            -v ${{ github.workspace }}:/app \
+            -w /app \
+            betoxvt/thinflux:latest run /data --summary
 
-      - name: Upload Artifact
-        uses: actions/upload-pages-artifact@v5
+      - name: Upload Telemetry Report Only
+        uses: actions/upload-artifact@v4
         with:
-          path: "./demo"
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+          name: thinflux-telemetry-report
+          path: thinflux_report.json
+          if-no-files-found: error

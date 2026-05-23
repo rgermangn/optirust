@@ -1,6 +1,6 @@
 [package]
 name = "thinflux"
-version = "0.1.3"
+version = "0.2.0"
 edition = "2024"
 authors = ["Roberto German Guedes Neto <rgermangn@gmail.com>"]
 license = "MIT"
@@ -12,6 +12,11 @@ clap = { version = "4.5.60", features = ["derive"] }
 
 # Processamento de Imagem (Motor Core)
 oxipng = "10.1.0"
+image = "0.25.10"
+webp = "0.3.1"
+
+# Extração do PDF
+lopdf = { version = "0.40.0", features = ["image", "embed_image"] }
 
 # Paralelismo e Performance
 rayon = "1.11.0"
@@ -19,7 +24,7 @@ rayon = "1.11.0"
 # Sistema de Arquivos e Configuração
 walkdir = "2.5.0"
 serde = { version = "1.0.228", features = ["derive"] }
-toml = "1.0.6+spec-1.1.0"
+toml = "1.0.6"
 
 # Interface Visual (Barra de progresso e Cores)
 indicatif = "0.18.4"
@@ -31,3 +36,8 @@ tempfile = "3.27.0"
 # Relatórios
 serde_json = "1.0.149"
 chrono = { version = "0.4.44", features = ["serde"] }
+
+[dev-dependencies]
+assert_cmd = "2.2.2"
+predicates = "3.1.4"
+tempfile = "3.27.0"

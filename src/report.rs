@@ -157,6 +157,8 @@ pub fn print_terminal_summary(report: &FinalReport) {
     );
 }
 
+// ─── Testes ──────────────────────────────────────────────────────────────────
+
 #[cfg(test)]
 mod tests {
 
