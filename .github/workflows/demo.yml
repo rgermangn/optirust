@@ -1,27 +1,31 @@
-name: ThinFlux Demo Lab
+name: 🧪 ThinFlux Demo Lab
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["ThinFlux CI/CD Pipeline"]
+    types:
+      - completed
+    workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  build-and-optimize:
+  deploy-demo:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v6
 
-      - name: Run ThinFlux (Optimization Step)
+      - name: 🐳 Run ThinFlux (Optimization Step)
         run: |
           docker run --rm \
             -v ${{ github.workspace }}/demo/assets:/data \
             -v ${{ github.workspace }}:/app \
             -w /app \
-            betoxvt/thinflux:latest run /data --summary
+            betoxvt/thinflux:latest run /data -l 4 --summary
 
       - name: Upload Telemetry Report Only
         uses: actions/upload-artifact@v4
