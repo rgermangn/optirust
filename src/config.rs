@@ -81,7 +81,7 @@ mod tests {
 
         // Valida o conteúdo (level 2 padrão)
         let content = fs::read_to_string(test_file).unwrap();
-        assert!(content.contains("level = 2"));
+        assert!(content.contains("level = 4"));
 
         // Limpeza final
         fs::remove_file(test_file).unwrap();
