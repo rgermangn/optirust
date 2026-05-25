@@ -102,7 +102,7 @@ thinflux [SUBCOMANDO] [CAMINHO] [FLAGS]
 | -------------- | -------------- | ------------------ | ------------- |
 | nenhuma | nenhuma | `[path/to/dir]` | O caminho para a pasta que contém as mídias a serem tratadas. |
 | `-l` | `--level` | `[0-6]` | Nível de Compressão: Sobrescreve o arquivo TOML. 0 é ultra rápido, 6 é compressão máxima de bytes. |
-| `-t` | `--types` | `[png|jpg|jpeg|webp|pdf]` | Filtro de Extensões: Permite isolar os alvos. Se você passar `-t png,pdf`, ele ignorará todos os JPEGs e WebPs da pasta. |
+| `-t` | `--types` | `[png,jpg,jpeg,webp,pdf]` | Filtro de Extensões: Permite isolar os alvos. Se você passar `-t png,pdf`, ele ignorará todos os JPEGs e WebPs da pasta. |
 | `-c` | `--config` | `[path/to/config.toml]` | Configuração Manual: Aponta para um arquivo TOML customizado em vez de usar o padrão do sistema. |
 | `-s` | `--summary` | nenhum | Resumo Visual: Desenha uma tabela de fechamento com os ganhos de peso. |
 | nenhuma | `--silent` | nenhum | Modo Silencioso: Apaga logs e barras de progresso. Perfeito para não poluir o histórico de logs do GitHub Actions. |
