@@ -11,7 +11,7 @@ pub struct OptiConfig {
 impl Default for OptiConfig {
     fn default() -> Self {
         Self {
-            level: 2,
+            level: 4,
             overwrite: true,
         }
     }

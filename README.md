@@ -1,19 +1,18 @@
 # 🌊 ThinFlux: Assets Multi-threaded Optimizer
 
-![Version](https://img.shields.io/badge/version-0.1.2-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Docker Size](https://img.shields.io/badge/docker%20image-2.53MB-blueviolet)
 ![Rust](https://img.shields.io/badge/rust-2024-orange?logo=rust)
-![Vulnerabilities](https://img.shields.io/rustsec/advisories/rgermangn/thinflux)
 
 > [!IMPORTANT]
 > **Antigo Optirust:** Este projeto foi renomeado de **Optirust** para **ThinFlux**. 
 > Se você está migrando de uma versão anterior, atualize suas referências de imagem Docker para `betoxvt/thinflux` e renomeie seu arquivo de configuração para `thinflux.toml`.
 
-O **ThinFlux** é uma ferramenta de linha de comando (CLI) desenvolvida em **Rust** focada na otimização em massa de imagens PNG. O projeto foi construído aplicando conceitos avançados de sistemas, como processamento paralelo, serialização rigorosa e desenvolvimento guiado por testes (TDD).
+Um motor CLI de alta performance desenvolvido em Rust para otimização, compressão e purgo estrutural agressivo de ativos multimídia (Imagens e PDFs). Ideal para ser integrado em esteiras de CI/CD para reduzir o peso de artefatos antes do deploy.
 
 > [!WARNING]
-> Os arquivos otimizados sobreescrevem arquivos com mesmo nome no destino. Dependendo da sua configuração de Deploy.
+> Os arquivos otimizados sobreescrevem arquivos com mesmo nome no destino.
 
 ### 🕵️ Auditoria de Dependências Estática
 Como parte do nosso processo de liberação de versão (Release), o arquivo `Cargo.lock` é auditado utilizando a ferramenta `cargo-audit` contra o banco de dados oficial da **RustSec Advisory Database**. Isso garante que o binário embutido na imagem Docker final está livre de vulnerabilidades conhecidas na cadeia de suprimentos.
@@ -28,32 +27,36 @@ Como parte do nosso processo de liberação de versão (Release), o arquivo `Car
 - **Configuração Flexível:** Suporte a arquivos `thinflux.toml` para definição de níveis de compressão e persistência de preferências.
 
 ## 🛠️ Tecnologias Utilizadas
-- **Engine:** `oxipng` (Motor de compressão de alto desempenho).
 
-- **CLI & UX:** `clap` (Parsing de argumentos) e `indicatif` (Barras de progresso dinâmicas).
-
-- **Paralelismo:** `rayon` (Data parallelism library).
-
-- **Data Handling:** `serde` (JSON/TOML) e `chrono` (Timestamping).
-
-- **Estilização:** `colored` (ANSI terminal colors).
+- **Rust** (Core Engine)
+- **Rayon** (Data Parallelism)
+- **Oxipng & Image** (Image Processing)
+- **Lopdf** (PDF Structural Modification)
+- **Docker & GitHub Actions** (CI/CD DevOps)
+- **Clap** (CLI Argument Parsing)
+- **Indicatif** (Dinamic Progress Bar)
+- **Tempfile** (Temporary Files)
+- **Serde** (JSON Serialization & TOML Configuration Persistence)
+- **Chrono** (Timestamping)
+- **Colored** (ANSI terminal colors)
 
 ## 🏗️ Arquitetura do Projeto
 
 ```
-├── src/
+├── src/                        # Código Fonte
 │   ├── main.rs                 # Entrada do programa
 │   ├── config.rs               # Configuração e Persistência
 │   ├── report.rs               # Gerador de Relatórios
 │   ├── scanner.rs              # Rastreador de Arquivos
 │   └── optimizer.rs            # Motor de Compressão
+├── tests/                      # Testes de Integração
 ├── demo/                   
-│   ├── assets/                 # Imagens para demonstração
+│   ├── assets/                 # Ativos para demonstração
 │   ├── index.html              # Página da demonstração
 │   └── iniciar_demo.txt        # Altere este arquivo para iniciar o Actions
 ├── .github/workflows/
 │   ├── ci.yml                  # Pipeline CI/CD do ThinFlux
-│   └── demo.yml                # Pipeline CI/CD do website de demonstração
+│   └── demo.yml                # Pipeline de demonstração usando o ThinFlux
 ├── docs/                       # Documentação do projeto
 ├── examples/                   # Scripts criados durante o desenvolvimento 
 ├── Cargo.toml                  # Configuração do Cargo
@@ -65,7 +68,7 @@ Como parte do nosso processo de liberação de versão (Release), o arquivo `Car
 └── README.md                   # Documentação
 ```
 
-## 📦 Como Instalar e Rodar
+## 📦 Como Instalar e Operar 
 **Pré-requisitos**
 
 - Rust (Cargo) 1.70+
@@ -80,22 +83,32 @@ Para obter o máximo de desempenho do paralelismo, compile sempre em modo releas
 cargo build --release
 ```
 
-**Comandos Principais**
+### ⌨️ Guia de Uso da CLI
 
-Inicializar Configuração:
+O ThinFlux opera através de subcomandos e flags direto no terminal. A estrutura básica do comando é:
 
-```Bash
-./target/release/thinflux init
+```
+thinflux [SUBCOMANDO] [CAMINHO] [FLAGS]
 ```
 
-**Executar Otimização com Relatório Visual**
+**Subcomandos**
 
-```Bash
-./target/release/thinflux run ./assets --summary
-```
+- `run`: Inicia a otimização de imagens e PDFs no diretório especificado.
+- `init`: Inicializa um arquivo de configuração padrão (thinflux.toml) no diretório atual para você customizar as regras sem precisar digitar flags longas toda vez.
+
+**Flags e Opções do Subcomando `run`**
+
+| **Flag Curta** | **Flag Longa** | **Valor Esperado** | **Descrição** |
+| -------------- | -------------- | ------------------ | ------------- |
+| nenhuma | nenhuma | `[path/to/dir]` | O caminho para a pasta que contém as mídias a serem tratadas. |
+| `-l` | `--level` | `[0-6]` | Nível de Compressão: Sobrescreve o arquivo TOML. 0 é ultra rápido, 6 é compressão máxima de bytes. |
+| `-t` | `--types` | `[png|jpg|jpeg|webp|pdf]` | Filtro de Extensões: Permite isolar os alvos. Se você passar `-t png,pdf`, ele ignorará todos os JPEGs e WebPs da pasta. |
+| `-c` | `--config` | `[path/to/config.toml]` | Configuração Manual: Aponta para um arquivo TOML customizado em vez de usar o padrão do sistema. |
+| `-s` | `--summary` | nenhum | Resumo Visual: Desenha uma tabela de fechamento com os ganhos de peso. |
+| nenhuma | `--silent` | nenhum | Modo Silencioso: Apaga logs e barras de progresso. Perfeito para não poluir o histórico de logs do GitHub Actions. |
 
 ### 📊 Exemplo de Relatório (JSON)
-Ao final de cada execução, o sistema gera um `thinflux_report.json` detalhado para auditoria:
+Ao final de cada execução, o ThinFlux gera um `thinflux_report.json` detalhado para auditoria:
 
 ```JSON
 {
@@ -144,12 +157,12 @@ docker build -t thinflux .
 Você pode usar o ThinFlux para otimizar imagens antes do deploy:
 
 ```YAML
-- name: Optimize PNGs
+- name: Optimize Assets
   run: |
     docker run --rm -v ${{ github.workspace }}/assets:/assets \
     betoxvt/thinflux:latest run /assets
 ```
-## 🧪 Quick Lab: Teste o ThinFlux em 30 segundos
+## 🧪 Quick Lab: Teste o ThinFlux em 1 minuto
 Você pode testar o poder de compressão do ThinFlux diretamente no seu navegador, usando o GitHub Actions como laboratório. O resultado será uma página como esta: https://rgermangn.github.io/thinflux/
 ### 1. Preparação
 1. Faça um ***Fork*** deste repositório.
@@ -158,12 +171,12 @@ Você pode testar o poder de compressão do ThinFlux diretamente no seu navegado
 ### 2. O Cenário Inicial
 1. Aguarde o primeiro deploy (veja na aba Actions).
 2. Acesse a URL gerada (ex: https://seu-usuario.github.io/thinflux/).
-3. Você verá uma galeria com 20 imagens marcadas como "Aguardando otimização...". Note que os tamanhos exibidos são os originais (baseados no sistema de arquivos).
+3. Você verá uma galeria com 22 imagens e 2 PDFs marcados como "Aguardando otimização...". Note que os tamanhos exibidos são os originais (baseados no sistema de arquivos).
 ### 3. Disparando a Otimização
 Agora, vamos ver o ThinFlux em ação no pipeline:
-1. No seu repositório, vá até o arquivo `demo/iniciar_demo.txt`.
-2. Clique no ícone de lápis para editar e altere qualquer detalhe inofensivo (ex: adicione qualquer palavra).
-3. Clique em ***Commit changes...*** para salvar na main.
+1. No seu repositório, vá até a pasta `demo/` e crie ou edite um arquivo qualquer (ex: edite o arquivo `iniciar_demo.txt` adicionando uma palavra).
+2. Clique em ***Commit changes...*** para salvar direto na branch `main`.
+3. Isso disparará o workflow de forma isolada no seu Fork, rodando o motor ThinFlux diretamente nas imagens da pasta de demonstração!
 ### 4. O Resultado
 1. Vá na aba Actions e acompanhe o workflow "ThinFlux Demo Lab". Você verá o Docker esmagando as imagens em tempo real.
 2. Quando terminar, volte à sua página do GitHub Pages e dê F5.
@@ -183,7 +196,7 @@ Os resultados devem ser próximos aos expressos nesta tabela:
 
 ### 🛠️ Como funciona este teste?
 Este repositório utiliza um pipeline de CI/CD que:
-- **Não altera seu código:** As imagens originais na pasta `demo/assets` continuam pesadas no Git.
+- **Não altera seu código:** Os ativos originais na pasta `demo/assets` continuam inalteradas no Git.
 - **Otimização *On-the-fly*:** O GitHub Actions usa a imagem Docker `betoxvt/thinflux` para otimizar os assets apenas durante o build.
 - **Deploy Transparente:** Apenas as versões leves são enviadas para o servidor de hospedagem.
 
@@ -229,23 +242,17 @@ graph TD
     U1 -.-> G1
 ```
 
-## ✅ Funcionalidades Implementadas (v0.1.0)
+## ✅ Funcionalidades Implementadas (v0.2.0)
 
-- [x] **Core Engine em Rust:** Processamento de alta performance utilizando a Edition 2024.
-- [x] **Paralelismo com Rayon:** Otimização multi-thread para processamento em massa de diretórios.
-- [x] **Interface CLI Intuitiva:** Comandos estruturados via `Clap` com suporte a ajuda detalhada (`--help`).
-- [x] **Relatórios Dinâmicos:** Geração automática de `thinflux_report.json` e resumo visual colorido no terminal.
-- [x] **Containerização Estática:** Imagem Docker ultra-leve baseada em `scratch` (<3MB), garantindo portabilidade total.
-- [x] **Cálculo de Eficiência:** Métricas precisas de ganho de espaço por arquivo e total da operação.
+- [x] **Arquitetura Concorrente de Alta Performance:** Processamento multimídia paralelo utilizando **Rayon** para extrair o máximo de desempenho de CPUs multi-core.
+- [x] **Otimização de Imagens Dinâmica:** Compressão nativa e re-codificação de arquivos nos formatos `PNG` (via Oxipng), `JPEG` e `WebP`.
+- [x] **Purgo Estrutural de PDFs:** Motor baseado em `lopdf` modificado para realizar remoção agressiva de metadados inúteis (`b"Info"`), descarte de referências mortas (`prune_objects`) e recompressão de streams de imagens internas de forma isolada e segura.
+- [x] **Garantia Anti-Corrupção (Escrita Atômica):** Sistema de escrita baseado em arquivos temporários exclusivos por Thread para evitar condições de corrida (Race Conditions) e colisão de arquivos.
+- [x] **Esteira de CI/CD e Docker Hub Automática:** Pipeline integrado no GitHub Actions que valida o código (Audit, Clippy, Tests), compila o binário e publica a imagem no Docker Hub de forma síncrona.
 
 ## 🗺️ Roadmap de Desenvolvimento
 
 Abaixo estão as funcionalidades planejadas para as próximas iterações do ThinFlux:
 
-- [ ] **Modo Silent (`--silent`):** Redução de logs para integração limpa em CI/CD.
-- [ ] **Configuração Dinâmica:** Suporte a `--config <path>` e argumentos de linha de comando para sobrescrever o `thinflux.toml`.
-- [ ] **Suporte Multi-Formato:** Expansão do algoritmo de compressão para:
-    - [ ] 🖼️ **Imagens:** WebP, JPEG e SVG.
-    - [ ] 📄 **Documentos:** Otimização de camadas de PDF.
 - [ ] **Internacionalização (i18n):** Suporte a logs e relatórios em Inglês e Português.
 - [ ] **Post-Compile Optimization (PCO):** Utilizar flags do Cargo.toml, seção `[profile.release]` para otimizar o binário final.
