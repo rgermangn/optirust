@@ -54,10 +54,10 @@ mod tests {
     use super::*;
 
     #[test]
-    // Sem arquivo de configuração, o padrão é 2
+    // Sem arquivo de configuração, o padrão é 4
     fn test_default_config_loading() {
         let config = load_config(None);
-        assert_eq!(config.level, 2);
+        assert_eq!(config.level, 4);
     }
 
     #[test]
@@ -79,7 +79,7 @@ mod tests {
         assert!(result.is_ok());
         assert!(Path::new(test_file).exists());
 
-        // Valida o conteúdo (level 2 padrão)
+        // Valida o conteúdo (level 4 padrão)
         let content = fs::read_to_string(test_file).unwrap();
         assert!(content.contains("level = 4"));
 
