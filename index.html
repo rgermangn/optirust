@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThinFlux Benchmark Lab</title>
+    <style>
+        :root {
+            --rust: #f74c00;
+            --bg: #121212;
+            --card: #1e1e1e;
+            --text: #e0e0e0;
+            --success: #2ecc71;
+            --pdf-color: #e74c3c;
+        }
+        body { 
+            font-family: 'Inter', system-ui, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            line-height: 1.6;
+            margin: 0; padding: 40px 20px;
+        }
+        .header { text-align: center; max-width: 800px; margin: 0 auto 50px; }
+        h1 { color: var(--rust); font-size: 2.5rem; margin-bottom: 10px; }
+        code { background: #333; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid #333;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        .card:hover { transform: translateY(-8px); border-color: var(--rust); }
+        .img-container {
+            height: 200px;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        
+        /* Ícone customizado elegante para quando o asset for um PDF */
+        .pdf-icon {
+            font-size: 3rem;
+            color: var(--pdf-color);
+            font-weight: bold;
+        }
+
+        .stats { padding: 20px; }
+        .filename { font-weight: 700; color: #888; margin-bottom: 10px; display: block; }
+        .size-compare { display: flex; flex-direction: column; gap: 5px; }
+        .old-size { font-size: 0.85rem; color: #666; text-decoration: line-through; }
+        .new-size { font-size: 1.2rem; font-weight: bold; color: var(--rust); }
+        .saving { 
+            font-size: 0.9rem; 
+            color: var(--success); 
+            background: rgba(46, 204, 113, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            align-self: flex-start;
+        }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            color: #555;
+            font-size: 0.85rem;
+            border-top: 1px solid #222;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>ThinFlux Benchmark</h1>
+    <p>Compare o peso dos ativos multimídia antes e depois da otimização pelo motor em Rust.</p>
+    <p><small>Se os valores forem iguais, mude algo em <code>/demo</code> para disparar o pipeline no GitHub Actions!</small></p>
+</div>
+
+<div class="grid" id="gallery"></div>
+
+<footer>
+    ThinFlux Engine Lab • Desenvolvido com Rayon & Oxipng em Rust
+</footer>
+
+<script>
+    const originalAssets = {
+        "00.png": 2471.28, "01.png": 2496.07, "02.png": 1069.50, "03.png": 517.30,
+        "04.png": 2767.60, "05.png": 1160.96, "06.png": 911.54,  "07.png": 1041.48,
+        "08.png": 871.55,  "09.png": 1315.48, "10.png": 400.23,  "11.png": 2197.83,
+        "12.png": 423.23,  "13.png": 570.84,  "14.png": 1775.06, "15.png": 367.48,
+        "16.png": 797.13,  "17.png": 775.60,  "18.png": 776.87,  "19.png": 1547.87,
+        "20.jpg": 15495.79, "21.webp": 29.65, "22.pdf": 21775.55, "23.pdf": 8280.41,
+    };
+
+    const gallery = document.getElementById('gallery');
+
+    Object.keys(originalAssets).forEach((name, index) => {
+        const path = `assets/${name}`;
+        const originalSize = originalAssets[name];
+        const isPdf = name.toLowerCase().endsWith('.pdf');
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        
+        const mediaContent = isPdf 
+            ? `<div class="pdf-icon">📄 PDF</div>`
+            : `<img src="${path}" alt="${name}">`;
+
+        card.innerHTML = `
+            <div class="img-container">
+                ${mediaContent}
+            </div>
+            <div class="stats">
+                <span class="filename">${name}</span>
+                <div class="size-compare" id="compare-${index}">
+                    <span class="new-size">Calculando...</span>
+                </div>
+            </div>
+        `;
+        gallery.appendChild(card);
+
+        updateSize(path, index, originalSize);
+    });
+
+async function updateSize(path, index, originalSize) {
+        // Encontra o container que já foi criado e inserido na tela
+        const container = document.getElementById(`compare-${index}`);
+        
+        try {
+            const response = await fetch(path, { cache: "no-store" });
+            
+            if (!response.ok) {
+                throw new Error("Arquivo não encontrado no servidor");
+            }
+            
+            const blob = await response.blob();
+            const currentSizeKB = (blob.size / 1024).toFixed(2);
+            
+            const diff = (originalSize - currentSizeKB).toFixed(2);
+            const percent = ((diff / originalSize) * 100).toFixed(1);
+
+            if (diff > 0.05) { 
+                container.innerHTML = `
+                    <span class="old-size">Original: ${originalSize.toFixed(2)} KB</span>
+                    <span class="new-size">Atual: ${currentSizeKB} KB</span>
+                    <span class="saving">↓ ${percent}% de redução</span>
+                `;
+            } else {
+                container.innerHTML = `
+                    <span class="new-size">${currentSizeKB} KB</span>
+                    <span class="filename" style="font-size:0.75rem; color:#f39c12;">Aguardando otimização...</span>
+                `;
+            }
+        } catch (e) {
+            // Se o arquivo falhar, o card continua na tela, mas exibe o aviso vermelho isolado!
+            container.innerHTML = `<span class="old-size" style="color:#e74c3c; text-decoration:none;">⚠️ Asset ausente ou erro de deploy</span>`;
+        }
+    }
+</script>
+
+</body>
+</html>
