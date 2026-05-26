@@ -11,7 +11,7 @@ use std::path::PathBuf;
 use std::time::Instant;
 
 /// 🦀 ThinFlux - Otimizador de assets de alta performance escrito em Rust.
-/// Desenvolvido para processamento em massa com segurança e velocidade.#[derive(Parser)]
+/// Desenvolvido para processamento em massa com segurança e velocidade.
 #[derive(Parser)]
 #[command(
     author = "Roberto German Guedes Neto",
