@@ -13,7 +13,13 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
   deploy-demo:
@@ -21,11 +27,11 @@ jobs:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'push' || github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: 🐳 Run ThinFlux (Optimization Step)
         run: |
@@ -35,8 +41,14 @@ jobs:
             -w /app \
             betoxvt/thinflux:latest run /data --summary
 
-      - name: 🌐 Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
+      - name: 🛠️ Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: 📦 Upload Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./demo
+          path: './demo'
+
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
