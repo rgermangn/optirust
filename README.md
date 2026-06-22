@@ -5,6 +5,10 @@
 ![Docker Size](https://img.shields.io/badge/docker%20image-2.53MB-blueviolet)
 ![Rust](https://img.shields.io/badge/rust-2024-orange?logo=rust)
 
+### Colabore com a validação do projeto
+
+Teste o ThinFlux e preencha o breve questionário: https://forms.gle/gvYzm4PXtZZijX8r8
+
 > [!IMPORTANT]
 > **Antigo Optirust:** Este projeto foi renomeado de **Optirust** para **ThinFlux**. 
 > Se você está migrando de uma versão anterior, atualize suas referências de imagem Docker para `betoxvt/thinflux` e renomeie seu arquivo de configuração para `thinflux.toml`.
